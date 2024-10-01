@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
+using translator.Libraries;
 
 namespace translator
 {
@@ -31,12 +32,34 @@ namespace translator
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() == true)
             {
-                string fileContent = File.ReadAllText(openFileDialog.FileName);
-                SourceTextBox.Document.Blocks.Clear();
-                SourceTextBox.Document.Blocks.Add(new Paragraph(new Run(fileContent)));
+                try
+                {
+                    Reader.Initialize(openFileDialog.FileName);
+
+                    StringBuilder fileContent = new StringBuilder();
+                    while (!Reader.IsEndOfFile())
+                    {
+                        fileContent.AppendLine($"Строка: {Reader.LineNumber}, Позиция: {Reader.SymbolPositionInLine}, Символ: {(char)Reader.CurrentSymbol}");
+                        Reader.ReadNextSymbol();
+                    }
+
+                    SourceTextBox.Document.Blocks.Clear();
+                    SourceTextBox.Document.Blocks.Add(new Paragraph(new Run(fileContent.ToString())));
+
+                    MessageTextBox.Document.Blocks.Clear();
+                    MessageTextBox.Document.Blocks.Add(new Paragraph(new Run("Файл успешно загружен и прочитан")));
+                }
+                catch (Exception ex)
+                {
+                    MessageTextBox.Document.Blocks.Clear();
+                    MessageTextBox.Document.Blocks.Add(new Paragraph(new Run($"Ошибка при чтении файла: {ex.Message}")));
+                }
+                finally
+                {
+                    Reader.Close();
+                }
             }
         }
-
         private void SaveFile_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
