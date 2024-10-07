@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Lexical_Analyzer_Libary.Classes
 {
-    internal class Lexems
+    public enum Lexems
     {
+        None, Name, Number, Begin, End, If, Then, Multiplication, Division, Plus,
+        Equal, Less, LessOrEqual, Semi, Assign, LeftBracket, EOF, Error
     }
 }

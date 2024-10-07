@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FBFCE283-1B99-4160-8D9F-EA152563F102}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Lexical_Analyzer_Libary</RootNamespace>
-    <AssemblyName>Lexical_Analyzer_Libary</AssemblyName>
+    <ProjectGuid>{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Tests</RootNamespace>
+    <AssemblyName>Tests</AssemblyName>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -23,6 +24,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -41,17 +43,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\CodeGenerator.cs" />
-    <Compile Include="Classes\Keyword.cs" />
-    <Compile Include="Classes\Lexems.cs" />
-    <Compile Include="Classes\LexicalAnalyzer.cs" />
-    <Compile Include="Classes\NameTable.cs" />
-    <Compile Include="Classes\Reader.cs" />
-    <Compile Include="Classes\SyntaxAnalyzer.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\inp.txt" />
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Lexical_Analyzer_Libary\Lexical_Analyzer_Libary.csproj">
+      <Project>{fbfce283-1b99-4160-8d9f-ea152563f102}</Project>
+      <Name>Lexical_Analyzer_Libary</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

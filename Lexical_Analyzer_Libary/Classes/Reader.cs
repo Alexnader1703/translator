@@ -5,23 +5,23 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace translator.Libraries
+namespace Lexical_Analyzer_Libary.Classes
 {
     /// <summary>
     /// Парсер файлов
     /// </summary>
-    public static class Reader
+    public class Reader
     {
-        private static int lineNumber;
-        private static int symbolPositionInLine;
-        private static int currentSymbol;
-        private static StreamReader streamReader;
+        private  int lineNumber;
+        private  int symbolPositionInLine;
+        private  int currentSymbol;
+        private  StreamReader streamReader;
 
-        public static int LineNumber => lineNumber;
-        public static int SymbolPositionInLine => symbolPositionInLine;
-        public static int CurrentSymbol => currentSymbol;
+        public  int LineNumber => lineNumber;
+        public  int SymbolPositionInLine => symbolPositionInLine;
+        public  int CurrentSymbol => currentSymbol;
 
-        public static void ReadNextSymbol()
+        public  void ReadNextSymbol()
         {
             currentSymbol = streamReader.Read();
             if (currentSymbol == -1)
@@ -43,7 +43,7 @@ namespace translator.Libraries
             }
         }
 
-        public static void Initialize(string filePath)
+        public Reader(string filePath)
         {
             if (File.Exists(filePath))
             {
@@ -59,7 +59,7 @@ namespace translator.Libraries
             }
         }
 
-        public static void Close()
+        public  void Close()
         {
             if (streamReader != null)
             {
@@ -68,7 +68,7 @@ namespace translator.Libraries
             }
         }
 
-        public static bool IsEndOfFile()
+        public  bool IsEndOfFile()
         {
             return currentSymbol == char.MaxValue;
         }

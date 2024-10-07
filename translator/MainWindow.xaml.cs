@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO;
 using translator.Libraries;
+using Lexical_Analyzer_Libary.Classes;
 
 namespace translator
 {
@@ -30,17 +31,18 @@ namespace translator
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
+            Reader _reader= new Reader(openFileDialog.FileName);
             if (openFileDialog.ShowDialog() == true)
             {
                 try
                 {
-                    Reader.Initialize(openFileDialog.FileName);
+                   
 
                     StringBuilder fileContent = new StringBuilder();
-                    while (!Reader.IsEndOfFile())
+                    while (!_reader.IsEndOfFile())
                     {
-                        fileContent.AppendLine($"Строка: {Reader.LineNumber}, Позиция: {Reader.SymbolPositionInLine}, Символ: {(char)Reader.CurrentSymbol}");
-                        Reader.ReadNextSymbol();
+                        fileContent.AppendLine($"Строка: {_reader.LineNumber}, Позиция: {_reader.SymbolPositionInLine}, Символ: {(char)Reader.CurrentSymbol}");
+                        _reader.ReadNextSymbol();
                     }
 
                     SourceTextBox.Document.Blocks.Clear();
@@ -56,7 +58,7 @@ namespace translator
                 }
                 finally
                 {
-                    Reader.Close();
+                    _reader.Close();
                 }
             }
         }

@@ -5,6 +5,10 @@ VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "translator", "translator\translator.csproj", "{6AE2540F-F390-4EAE-A06C-CF441CFAEFAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lexical_Analyzer_Libary", "Lexical_Analyzer_Libary\Lexical_Analyzer_Libary.csproj", "{FBFCE283-1B99-4160-8D9F-EA152563F102}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{6AE2540F-F390-4EAE-A06C-CF441CFAEFAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6AE2540F-F390-4EAE-A06C-CF441CFAEFAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6AE2540F-F390-4EAE-A06C-CF441CFAEFAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBFCE283-1B99-4160-8D9F-EA152563F102}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBFCE283-1B99-4160-8D9F-EA152563F102}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBFCE283-1B99-4160-8D9F-EA152563F102}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBFCE283-1B99-4160-8D9F-EA152563F102}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACD587C8-AD0D-4B0B-AF16-B4A3DC51661A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
