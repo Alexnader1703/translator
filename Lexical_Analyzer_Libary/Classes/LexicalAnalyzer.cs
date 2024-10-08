@@ -1,21 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lexical_Analyzer_Libary.Classes
 {
-
-    /// <summary>
-    /// Лексический анализатор
-    /// </summary>
     public class LexicalAnalyzer
     {
         private Reader _reader;
         private Keyword[] _keywords;
         private int _keywordsPointer;
         private List<string> _lexemes;
+        private NameTable _nameTable;  // Добавляем таблицу имен
 
         public Lexems CurrentLexem { get; private set; }
         public string CurrentName { get; private set; }
@@ -28,9 +22,9 @@ namespace Lexical_Analyzer_Libary.Classes
             _lexemes = new List<string>();
             InitializeKeywords();
             _reader = new Reader(filePath);
+            _nameTable = new NameTable();  // Инициализация таблицы имен
             CurrentLexem = Lexems.None;
         }
-
 
         private void InitializeKeywords()
         {
@@ -38,7 +32,7 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("end", Lexems.End);
             AddKeyword("if", Lexems.If);
             AddKeyword("then", Lexems.Then);
-            AddKeyword("else", Lexems.Else);       
+            AddKeyword("else", Lexems.Else);
             AddKeyword("endif", Lexems.EndIf);
             AddKeyword(",", Lexems.Comma);
         }
@@ -63,18 +57,15 @@ namespace Lexical_Analyzer_Libary.Classes
 
         public void ParseNextLexem()
         {
-            // Пропускаем пробелы и управляющие символы
             while (_reader.CurrentSymbol == ' ' || _reader.CurrentSymbol == '\t' || _reader.CurrentSymbol == '\r' || _reader.CurrentSymbol == '\n')
             {
                 _reader.ReadNextSymbol();
             }
 
-            // Обработка идентификаторов и ключевых слов
             if (char.IsLetter((char)_reader.CurrentSymbol))
             {
                 ParseIdentifier();
             }
-            // Обработка чисел
             else if (char.IsDigit((char)_reader.CurrentSymbol))
             {
                 ParseNumber();
@@ -104,57 +95,34 @@ namespace Lexical_Analyzer_Libary.Classes
                         CurrentLexem = Lexems.Equal;
                         break;
                     case '<':
-                        _reader.ReadNextSymbol();
-                        if (_reader.CurrentSymbol == '=')
-                        {
-                            _reader.ReadNextSymbol();
-                            CurrentLexem = Lexems.LessOrEqual;
-                        }
-                        else
-                        {
-                            CurrentLexem = Lexems.Less;
-                        }
-                        break;
                     case '>':
-                        _reader.ReadNextSymbol();
-                        if (_reader.CurrentSymbol == '=')
-                        {
-                            _reader.ReadNextSymbol();
-                            CurrentLexem = Lexems.GreaterOrEqual;
-                        }
-                        else
-                        {
-                            CurrentLexem = Lexems.Greater;
-                        }
-                        break;
                     case '(':
-                        _reader.ReadNextSymbol();
-                        CurrentLexem = Lexems.LeftBracket;
-                        break;
                     case ')':
-                        _reader.ReadNextSymbol();
-                        CurrentLexem = Lexems.RightBracket;
-                        break;
                     case ';':
-                        _reader.ReadNextSymbol();
-                        CurrentLexem = Lexems.Semi;
-                        break;
                     case ',':
                         _reader.ReadNextSymbol();
-                        CurrentLexem = Lexems.Comma;
                         break;
                     case '\0':
                         CurrentLexem = Lexems.EOF;
                         break;
                     default:
-                        // Неопознанный символ
                         CurrentLexem = Lexems.EOF;
                         break;
                 }
             }
 
+            // Если текущая лексема — идентификатор и он еще не добавлен в таблицу имен
+            if (CurrentLexem == Lexems.Name)
+            {
+                if (_nameTable.FindByName(CurrentName).Name == null)
+                {
+                    _nameTable.AddIdentifier(CurrentName, tCat.Var);
+                }
+            }
+
             _lexemes.Add(CurrentLexem.ToString());
         }
+
         private void ParseIdentifier()
         {
             string identifier = string.Empty;
@@ -184,6 +152,11 @@ namespace Lexical_Analyzer_Libary.Classes
         public List<string> GetLexemes()
         {
             return _lexemes;
+        }
+
+        public NameTable GetNameTable()
+        {
+            return _nameTable;
         }
     }
 }

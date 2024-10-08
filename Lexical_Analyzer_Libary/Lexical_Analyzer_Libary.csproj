@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Classes\CodeGenerator.cs" />
+    <Compile Include="Classes\Identifier.cs" />
     <Compile Include="Classes\Keyword.cs" />
     <Compile Include="Classes\Lexems.cs" />
     <Compile Include="Classes\LexicalAnalyzer.cs" />

@@ -25,7 +25,11 @@ namespace Tests
             {
                 Console.WriteLine(lexeme);
             }
-
+            Console.WriteLine("Все идентификаторы в таблице имен:");
+            foreach (var identifier in analyzer.GetNameTable().GetIdentifiers())
+            {
+                Console.WriteLine(identifier);
+            }
             Console.ReadKey();
         }
 
