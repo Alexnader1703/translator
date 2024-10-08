@@ -41,7 +41,7 @@ namespace translator
                     StringBuilder fileContent = new StringBuilder();
                     while (!_reader.IsEndOfFile())
                     {
-                        fileContent.AppendLine($"Строка: {_reader.LineNumber}, Позиция: {_reader.SymbolPositionInLine}, Символ: {(char)Reader.CurrentSymbol}");
+                        fileContent.AppendLine($"Строка: {_reader.LineNumber}, Позиция: {_reader.SymbolPositionInLine}, Символ: {(char)_reader.CurrentSymbol}");
                         _reader.ReadNextSymbol();
                     }
 

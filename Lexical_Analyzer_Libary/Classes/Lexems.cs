@@ -8,7 +8,9 @@ namespace Lexical_Analyzer_Libary.Classes
 {
     public enum Lexems
     {
-        None, Name, Number, Begin, End, If, Then, Multiplication, Division, Plus,
-        Equal, Less, LessOrEqual, Semi, Assign, LeftBracket, EOF, Error
+        None, Name, Number, Begin, End, If, Then, Else, EndIf, // Добавил недостающие ключевые слова
+        Multiplication, Division, Plus, Minus, // Добавил арифметические операторы
+        Equal, Greater, Less, LessOrEqual, GreaterOrEqual, // Логические операторы
+        Semi, Assign, LeftBracket, RightBracket, EOF, Error,Comma // Завершение оператора и скобки
     }
 }

@@ -1,1 +1,4 @@
-hello
+int a,b
+begin
+a=1
+end

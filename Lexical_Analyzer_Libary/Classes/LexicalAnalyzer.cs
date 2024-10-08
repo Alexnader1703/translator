@@ -38,6 +38,9 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("end", Lexems.End);
             AddKeyword("if", Lexems.If);
             AddKeyword("then", Lexems.Then);
+            AddKeyword("else", Lexems.Else);       
+            AddKeyword("endif", Lexems.EndIf);
+            AddKeyword(",", Lexems.Comma);
         }
 
         private void AddKeyword(string keyword, Lexems lexem)
@@ -60,15 +63,18 @@ namespace Lexical_Analyzer_Libary.Classes
 
         public void ParseNextLexem()
         {
-            while (_reader.CurrentSymbol == ' ')
+            // Пропускаем пробелы и управляющие символы
+            while (_reader.CurrentSymbol == ' ' || _reader.CurrentSymbol == '\t' || _reader.CurrentSymbol == '\r' || _reader.CurrentSymbol == '\n')
             {
                 _reader.ReadNextSymbol();
             }
 
+            // Обработка идентификаторов и ключевых слов
             if (char.IsLetter((char)_reader.CurrentSymbol))
             {
                 ParseIdentifier();
             }
+            // Обработка чисел
             else if (char.IsDigit((char)_reader.CurrentSymbol))
             {
                 ParseNumber();
@@ -81,28 +87,80 @@ namespace Lexical_Analyzer_Libary.Classes
                         _reader.ReadNextSymbol();
                         CurrentLexem = Lexems.Plus;
                         break;
+                    case '-':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.Minus;
+                        break;
+                    case '*':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.Multiplication;
+                        break;
+                    case '/':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.Division;
+                        break;
                     case '=':
                         _reader.ReadNextSymbol();
                         CurrentLexem = Lexems.Equal;
+                        break;
+                    case '<':
+                        _reader.ReadNextSymbol();
+                        if (_reader.CurrentSymbol == '=')
+                        {
+                            _reader.ReadNextSymbol();
+                            CurrentLexem = Lexems.LessOrEqual;
+                        }
+                        else
+                        {
+                            CurrentLexem = Lexems.Less;
+                        }
+                        break;
+                    case '>':
+                        _reader.ReadNextSymbol();
+                        if (_reader.CurrentSymbol == '=')
+                        {
+                            _reader.ReadNextSymbol();
+                            CurrentLexem = Lexems.GreaterOrEqual;
+                        }
+                        else
+                        {
+                            CurrentLexem = Lexems.Greater;
+                        }
+                        break;
+                    case '(':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.LeftBracket;
+                        break;
+                    case ')':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.RightBracket;
+                        break;
+                    case ';':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.Semi;
+                        break;
+                    case ',':
+                        _reader.ReadNextSymbol();
+                        CurrentLexem = Lexems.Comma;
                         break;
                     case '\0':
                         CurrentLexem = Lexems.EOF;
                         break;
                     default:
-                        CurrentLexem = Lexems.Error;
+                        // Неопознанный символ
+                        CurrentLexem = Lexems.EOF;
                         break;
                 }
             }
 
             _lexemes.Add(CurrentLexem.ToString());
         }
-
         private void ParseIdentifier()
         {
             string identifier = string.Empty;
             while (char.IsLetter((char)_reader.CurrentSymbol))
             {
-                identifier += _reader.CurrentSymbol;
+                identifier += (char)_reader.CurrentSymbol;
                 _reader.ReadNextSymbol();
             }
 
