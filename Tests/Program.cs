@@ -11,25 +11,34 @@ namespace Tests
     {
         static void Main(string[] args)
         {
-            
-           
-            LexicalAnalyzer analyzer = new LexicalAnalyzer(@"C:\Users\Julia\Documents\GitHub\translator\Lexical_Analyzer_Libary\Assets\inp.txt");
-            while (analyzer.CurrentLexem != Lexems.EOF)
-            {
-                analyzer.ParseNextLexem();
-               
-            }
-            List<string> lexemes = analyzer.GetLexemes();
+
+
+            string filePath = @"C:\Users\Julia\Documents\GitHub\translator\Lexical_Analyzer_Libary\Assets\inp.txt";
+
+            // Создаем экземпляр лексического анализатора
+            LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(filePath);
+
+            // Создаем экземпляр синтаксического анализатора
+            SyntaxAnalyzer syntaxAnalyzer = new SyntaxAnalyzer(lexicalAnalyzer);
+
+            // Запускаем компиляцию (синтаксический анализ)
+            syntaxAnalyzer.Compile();
+
+            // Выводим все лексемы (как раньше)
+            List<string> lexemes = lexicalAnalyzer.GetLexemes();
             Console.WriteLine("\nВсе лексемы в виде списка строк:");
             foreach (var lexeme in lexemes)
             {
                 Console.WriteLine(lexeme);
             }
-            Console.WriteLine("Все идентификаторы в таблице имен:");
-            foreach (var identifier in analyzer.GetNameTable().GetIdentifiers())
+
+            // Выводим все идентификаторы в таблице имен (как раньше)
+            Console.WriteLine("\nВсе идентификаторы в таблице имен:");
+            foreach (var identifier in lexicalAnalyzer.GetNameTable().GetIdentifiers())
             {
                 Console.WriteLine(identifier);
             }
+
             Console.ReadKey();
         }
 

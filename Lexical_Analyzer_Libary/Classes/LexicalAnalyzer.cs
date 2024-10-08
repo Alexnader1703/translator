@@ -5,7 +5,7 @@ namespace Lexical_Analyzer_Libary.Classes
 {
     public class LexicalAnalyzer
     {
-        private Reader _reader;
+        public Reader _reader;
         private Keyword[] _keywords;
         private int _keywordsPointer;
         private List<string> _lexemes;
