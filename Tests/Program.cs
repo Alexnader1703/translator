@@ -13,7 +13,7 @@ namespace Tests
         {
 
 
-            string filePath = @"C:\Users\Julia\Documents\GitHub\translator\Lexical_Analyzer_Libary\Assets\inp.txt";
+            string filePath = @"D:\Github\translator\Lexical_Analyzer_Libary\Assets\inp.txt";
 
             // Создаем экземпляр лексического анализатора
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(filePath);

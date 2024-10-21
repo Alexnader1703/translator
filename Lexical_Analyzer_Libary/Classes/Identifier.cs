@@ -13,7 +13,8 @@ namespace Lexical_Analyzer_Libary.Classes
     {
         None,  // Неопределенный тип
         Int,   // Целое число
-        Bool   // Логическое значение
+        Bool,
+        String, Float, Double, Char// Логическое значение
     };
 
     /// <summary>
