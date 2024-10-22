@@ -7,7 +7,7 @@ namespace Lexical_Analyzer_Libary.Classes
     public class SyntaxAnalyzer
     {
         private LexicalAnalyzer _lexicalAnalyzer;
-        private List<string> _errors;
+        public List<string> _errors;
 
         public SyntaxAnalyzer(LexicalAnalyzer lexicalAnalyzer)
         {

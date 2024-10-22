@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:translator"
         mc:Ignorable="d"
-       Title="Translator" Height="450" Width="800">
+        Title="Translator" Height="450" Width="800"
+        KeyDown="Window_KeyDown">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -32,9 +33,10 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <RichTextBox Grid.Column="0" Grid.Row="0" Name="SourceTextBox" Margin="5"/>
-            <RichTextBox Grid.Column="1" Grid.Row="0" Name="ResultTextBox" Margin="5"/>
-            <RichTextBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Name="MessageTextBox" Height="100" Margin="5"/>
+            <!-- Добавляем стили для RichTextBox -->
+            <RichTextBox Grid.Column="0" Grid.Row="0" Name="SourceTextBox" Margin="5" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
+            <RichTextBox Grid.Column="1" Grid.Row="0" Name="ResultTextBox" Margin="5" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
+            <RichTextBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Name="MessageTextBox" Height="100" Margin="5" FontFamily="Segoe UI" FontSize="12" FontWeight="Normal"/>
         </Grid>
     </Grid>
 </Window>

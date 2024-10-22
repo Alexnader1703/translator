@@ -13,7 +13,7 @@ namespace Tests
         {
 
 
-            string filePath = @"D:\Github\translator\Lexical_Analyzer_Libary\Assets\inp.txt";
+            string filePath = @"C:\Users\Julia\Documents\GitHub\translator\Lexical_Analyzer_Libary\Assets\inp.txt";
 
             // Создаем экземпляр лексического анализатора
             LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(filePath);
@@ -24,7 +24,7 @@ namespace Tests
             // Запускаем компиляцию (синтаксический анализ)
             syntaxAnalyzer.Compile();
 
-            // Выводим все лексемы (как раньше)
+            // Выводим все лексемы 
             List<string> lexemes = lexicalAnalyzer.GetLexemes();
             Console.WriteLine("\nВсе лексемы в виде списка строк:");
             foreach (var lexeme in lexemes)
@@ -32,7 +32,7 @@ namespace Tests
                 Console.WriteLine(lexeme);
             }
 
-            // Выводим все идентификаторы в таблице имен (как раньше)
+            // Выводим все идентификаторы в таблице имен 
             Console.WriteLine("\nВсе идентификаторы в таблице имен:");
             foreach (var identifier in lexicalAnalyzer.GetNameTable().GetIdentifiers())
             {

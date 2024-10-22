@@ -20,25 +20,28 @@ namespace Lexical_Analyzer_Libary.Classes
         public bool HasErrors => _errors.Count > 0;
         public IReadOnlyList<string> Errors => _errors;
 
-        public LexicalAnalyzer(string filePath)
+        public LexicalAnalyzer(string input, bool isStringInput = false)
         {
             _keywords = new Keyword[30]; // Увеличил размер массива для большего количества ключевых слов
             _keywordsPointer = 0;
             _lexemes = new List<string>();
             _errors = new List<string>();
             _types = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            {
-                "int",
-                "string",
-                "bool",
-                "float",
-                "double",
-                "char",
-                "void"
-            };
+    {
+        "int", "string", "bool", "float", "double", "char", "void"
+    };
 
             InitializeKeywords();
-            _reader = new Reader(filePath);
+
+            if (isStringInput)
+            {
+                _reader = new Reader(input, true); // Используем строку в качестве входных данных
+            }
+            else
+            {
+                _reader = new Reader(input); // Используем путь к файлу
+            }
+
             _nameTable = new NameTable();
             CurrentLexem = Lexems.None;
         }

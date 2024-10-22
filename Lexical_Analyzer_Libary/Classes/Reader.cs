@@ -1,32 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lexical_Analyzer_Libary.Classes
 {
-    /// <summary>
-    /// Парсер файлов
-    /// </summary>
     public class Reader
     {
-        private  int lineNumber;
-        private  int symbolPositionInLine;
-        private  int currentSymbol;
-        private  StreamReader streamReader;
+        private int lineNumber;
+        private int symbolPositionInLine;
+        private int currentSymbol;
+        private TextReader textReader;
 
-        public  int LineNumber => lineNumber;
-        public  int SymbolPositionInLine => symbolPositionInLine;
-        public  int CurrentSymbol => currentSymbol;
+        public int LineNumber => lineNumber;
+        public int SymbolPositionInLine => symbolPositionInLine;
+        public int CurrentSymbol => currentSymbol;
 
-        public  void ReadNextSymbol()
+        public void ReadNextSymbol()
         {
-            currentSymbol = streamReader.Read();
+            currentSymbol = textReader.Read();
             if (currentSymbol == -1)
             {
-                currentSymbol = char.MaxValue; // Представляем конец файла как char.MaxValue
+                currentSymbol = char.MaxValue;
             }
             else if (currentSymbol == '\n')
             {
@@ -47,8 +40,8 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             if (File.Exists(filePath))
             {
-                Close(); // Закрываем предыдущий StreamReader, если он был открыт
-                streamReader = new StreamReader(filePath);
+                Close();
+                textReader = new StreamReader(filePath);
                 lineNumber = 1;
                 symbolPositionInLine = 0;
                 ReadNextSymbol();
@@ -59,16 +52,40 @@ namespace Lexical_Analyzer_Libary.Classes
             }
         }
 
-        public  void Close()
+        public Reader(StringReader stringReader)
         {
-            if (streamReader != null)
+            Close();
+            textReader = stringReader;
+            lineNumber = 1;
+            symbolPositionInLine = 0;
+            ReadNextSymbol();
+        }
+
+        public Reader(string inputString, bool isStringInput)
+        {
+            if (isStringInput)
             {
-                streamReader.Close();
-                streamReader = null;
+                textReader = new StringReader(inputString);
+                lineNumber = 1;
+                symbolPositionInLine = 0;
+                ReadNextSymbol();
+            }
+            else
+            {
+                throw new ArgumentException("Invalid string input");
             }
         }
 
-        public  bool IsEndOfFile()
+        public void Close()
+        {
+            if (textReader != null)
+            {
+                textReader.Close();
+                textReader = null;
+            }
+        }
+
+        public bool IsEndOfFile()
         {
             return currentSymbol == char.MaxValue;
         }
