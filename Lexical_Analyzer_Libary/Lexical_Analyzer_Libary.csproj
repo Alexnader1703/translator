@@ -54,5 +54,8 @@
   <ItemGroup>
     <Resource Include="Assets\inp.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\inp2.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

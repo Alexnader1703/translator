@@ -17,10 +17,10 @@ namespace Lexical_Analyzer_Libary.Classes
         End,            // end
         If,             // if
         Then,           // then
-        Else,           // else
+        Else, ElseIf,           // else
         EndIf,          // endif
         Do,             // do
-        While,For,          // while
+        While, EndWhile, For,          // while
         // Арифметические операторы
         Plus,           // +
         Minus,          // -
@@ -42,7 +42,8 @@ namespace Lexical_Analyzer_Libary.Classes
         RightPar, Char,String,      // )
         // Служебные лексемы
         EOF,            // Конец файла
-        Error           // Ошибка
+        Error,
+        Print,// Ошибка
     }
 
 }

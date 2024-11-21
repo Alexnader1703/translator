@@ -57,6 +57,8 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("else", Lexems.Else);
             AddKeyword("endif", Lexems.EndIf);
             AddKeyword("while", Lexems.While);
+            AddKeyword("endwhile", Lexems.EndWhile);
+            AddKeyword("elseif", Lexems.ElseIf);
             AddKeyword("do", Lexems.Do);
             AddKeyword("for", Lexems.For);
 
