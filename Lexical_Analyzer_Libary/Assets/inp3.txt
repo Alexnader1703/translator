@@ -1,7 +1,9 @@
-int a, b, c;
+int i, sum, c;
 begin
-   a = 5;
-   b = 10;
-   c = a + b;
-   print c;
+    sum = 0;
+    c = 5;
+    for i = 1 to c do
+        sum = sum + i;
+    endfor;
+    print sum;
 end

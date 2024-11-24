@@ -93,6 +93,7 @@ namespace translator
                 // Очищаем текстбоксы
                 ResultTextBox.Document.Blocks.Clear();
                 MessageTextBox.Document.Blocks.Clear();
+                CodeGenerator.ClearCode();
 
                 // Чтение исходного кода из текстбокса
                 TextRange sourceTextRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);

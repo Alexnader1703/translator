@@ -179,6 +179,14 @@ namespace Lexical_Analyzer_Libary.Classes
             return code.ToArray();
         }
 
-        // Дополнительные методы генерации кода по необходимости
+        /// <summary>
+        /// Метод для очистки всего сгенерированного кода
+        /// </summary>
+        public static void ClearCode()
+        {
+            code.Clear();
+            labelCounter = 0; // Сбрасываем счетчик меток для корректной генерации новых меток
+        }
+
     }
 }
