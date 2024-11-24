@@ -82,24 +82,31 @@ namespace translator
         {
             try
             {
-                // Чтение исходного кода из текстбокса
-                TextRange sourceTextRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
-                string sourceCode = sourceTextRange.Text;
-
-                // Создаем экземпляр лексического анализатора
-                LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceCode, true); // true - для чтения строки, а не файла
-
-                // Создаем экземпляр синтаксического анализатора
-                SyntaxAnalyzer syntaxAnalyzer = new SyntaxAnalyzer(lexicalAnalyzer);
+                // Очищаем файл Code.asm
+                string tasmPath = Environment.CurrentDirectory + "\\TASM";
+                string asmFilePath = tasmPath + "\\Code.asm";
+                if (File.Exists(asmFilePath))
+                {
+                    File.WriteAllText(asmFilePath, string.Empty);
+                }
 
                 // Очищаем текстбоксы
                 ResultTextBox.Document.Blocks.Clear();
                 MessageTextBox.Document.Blocks.Clear();
 
-                // Запускаем компиляцию (синтаксический анализ)
+                // Чтение исходного кода из текстбокса
+                TextRange sourceTextRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+                string sourceCode = sourceTextRange.Text;
+
+                // Создаем экземпляр лексического анализатора
+                LexicalAnalyzer lexicalAnalyzer = new LexicalAnalyzer(sourceCode, true);
+
+                // Создаем экземпляр синтаксического анализатора
+                SyntaxAnalyzer syntaxAnalyzer = new SyntaxAnalyzer(lexicalAnalyzer);
+
+                // Запускаем компиляцию
                 syntaxAnalyzer.Compile();
 
-                // Проверяем наличие ошибок в синтаксическом анализаторе и выводим их красным цветом
                 if (syntaxAnalyzer._errors.Count > 0)
                 {
                     StringBuilder errorsOutput = new StringBuilder("Ошибки синтаксического анализа:\n");
@@ -112,60 +119,67 @@ namespace translator
                         FontFamily = new FontFamily("Segoe UI"),
                         FontSize = 12,
                         FontWeight = FontWeights.Bold,
-                        Foreground = Brushes.Red // Красный цвет для ошибок
+                        Foreground = Brushes.Red
                     };
                     MessageTextBox.Document.Blocks.Add(errorParagraph);
                 }
                 else
                 {
-                    // Выводим сообщение об успешной компиляции в MessageTextBox жирным черным текстом
                     Paragraph successParagraph = new Paragraph(new Run("Компиляция выполнена успешно"))
                     {
                         FontFamily = new FontFamily("Segoe UI"),
                         FontSize = 12,
                         FontWeight = FontWeights.Bold,
-                        Foreground = Brushes.Black // Черный цвет для успешного сообщения
+                        Foreground = Brushes.Black
                     };
                     MessageTextBox.Document.Blocks.Add(successParagraph);
 
-                    // Получаем сгенерированный ассемблерный код из CodeGenerator
-                    string[] generatedCode = CodeGenerator.GetGeneratedCode();
+                    // Создаем директорию TASM, если её нет
+                    if (!Directory.Exists(tasmPath))
+                    {
+                        Directory.CreateDirectory(tasmPath);
+                    }
 
-                    // Формируем строку для вывода
+                    // Сохраняем ассемблерный код в файл
+                    string[] generatedCode = CodeGenerator.GetGeneratedCode();
+                    File.WriteAllLines(asmFilePath, generatedCode);
+
+                    // Выводим сгенерированный код в ResultTextBox
                     StringBuilder codeOutput = new StringBuilder("Сгенерированный ассемблерный код:\n");
                     foreach (var line in generatedCode)
                     {
                         codeOutput.AppendLine(line);
                     }
-
-                    // Выводим сгенерированный код в ResultTextBox
                     Paragraph codeParagraph = new Paragraph(new Run(codeOutput.ToString()))
                     {
                         FontFamily = new FontFamily("Consolas"),
                         FontSize = 12,
                         FontWeight = FontWeights.Normal,
-                        Foreground = Brushes.Black // Черный цвет для кода
+                        Foreground = Brushes.Black
                     };
                     ResultTextBox.Document.Blocks.Add(codeParagraph);
 
-                    // Сохраняем сгенерированный код в файл Code.asm
-                    File.WriteAllLines("TASM\\Code.asm", generatedCode);
+                    // Создаем файл Run.bat
+                    string runBatContent = @"MASM.exe Code.asm,,,;
+LINK.exe Code.obj,,,;
+Code.exe";
+                    File.WriteAllText(tasmPath + "\\Run.bat", runBatContent);
                 }
             }
             catch (Exception ex)
             {
-                // Выводим сообщение об ошибке в MessageTextBox красным цветом
                 MessageTextBox.Document.Blocks.Clear();
                 Paragraph errorParagraph = new Paragraph(new Run($"Ошибка при компиляции: {ex.Message}"))
                 {
                     FontFamily = new FontFamily("Segoe UI"),
                     FontSize = 12,
                     FontWeight = FontWeights.Normal,
-                    Foreground = Brushes.Red // Красный цвет для исключений
+                    Foreground = Brushes.Red
                 };
                 MessageTextBox.Document.Blocks.Add(errorParagraph);
             }
         }
+
 
         private void Run_Click(object sender, RoutedEventArgs e)
         {
@@ -211,6 +225,7 @@ namespace translator
                 MessageBox.Show($"Ошибка при запуске программы: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {

@@ -1,0 +1,7 @@
+int a, b, c;
+begin
+   a = 5;
+   b = 10;
+   c = a + b;
+   print c;
+end

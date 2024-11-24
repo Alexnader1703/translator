@@ -13,16 +13,19 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Меню -->
         <Menu Grid.Row="0">
             <MenuItem Header="Файл">
                 <MenuItem Header="Открыть" Click="OpenFile_Click"/>
                 <MenuItem Header="Сохранить" Click="SaveFile_Click"/>
             </MenuItem>
             <MenuItem Header="Компиляция">
-                <MenuItem Header="Выполнить" Click="Compile_Click"/>
+                <MenuItem Header="Скомпилировать" Click="Compile_Click"/>
+                <MenuItem Header="Запуск программы" Click="Run_Click"/>
             </MenuItem>
         </Menu>
 
+        <!-- Основная разметка -->
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -31,12 +34,15 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Добавляем стили для RichTextBox -->
+            <!-- Поля для ввода и результата -->
             <RichTextBox Grid.Column="0" Grid.Row="0" Name="SourceTextBox" Margin="5" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
             <RichTextBox Grid.Column="1" Grid.Row="0" Name="ResultTextBox" Margin="5" FontFamily="Consolas" FontSize="14" FontWeight="Bold"/>
             <RichTextBox Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Name="MessageTextBox" Height="100" Margin="5" FontFamily="Segoe UI" FontSize="12" FontWeight="Normal"/>
+
+           
         </Grid>
     </Grid>
 </Window>

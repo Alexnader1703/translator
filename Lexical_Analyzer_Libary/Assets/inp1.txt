@@ -1,0 +1,9 @@
+int a, b, c;
+begin
+   a = 7;                  
+   b = 4;                   
+   a = a * a - 7 * b;       
+   a = a - b;               
+   c = a * a + b;          
+   print c;                
+end

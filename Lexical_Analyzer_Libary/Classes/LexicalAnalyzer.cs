@@ -61,6 +61,7 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("elseif", Lexems.ElseIf);
             AddKeyword("do", Lexems.Do);
             AddKeyword("for", Lexems.For);
+            AddKeyword("print", Lexems.Print);
 
         }
 

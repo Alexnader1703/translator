@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Lexical_Analyzer_Libary.Classes
 {
     /// <summary>
-    /// Генератор кода 
+    /// Генератор кода
     /// </summary>
     public class CodeGenerator
     {
@@ -38,25 +35,8 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         public static void DeclareDataSegment()
         {
-            AddInstruction("data segment para public \"data\"");
-        }
-
-        /// <summary>
-        /// Объявление сегментов стека и кода
-        /// </summary>
-        public static void DeclareStackAndCodeSegments()
-        {
-            AddInstruction("PRINT_BUF DB ' ' DUP(10)");
-            AddInstruction("BUFEND    DB '$'");
-            AddInstruction("data ends");
-            AddInstruction("stk segment stack");
-            AddInstruction("db 256 dup (\"?\")");
-            AddInstruction("stk ends");
-            AddInstruction("code segment para public \"code\"");
-            AddInstruction("main proc");
-            AddInstruction("assume cs:code,ds:data,ss:stk");
-            AddInstruction("mov ax,data");
-            AddInstruction("mov ds,ax");
+            // Исправление: Удалены лишние атрибуты
+            AddInstruction("data segment");
         }
 
         /// <summary>
@@ -67,8 +47,31 @@ namespace Lexical_Analyzer_Libary.Classes
             var identifiers = nameTable.GetIdentifiers();
             foreach (var identifier in identifiers)
             {
-                AddInstruction($"{identifier.Name}  dw    1");
+                // Опционально: можно не инициализировать переменные или инициализировать корректно
+                AddInstruction($"{identifier.Name} dw ?");
             }
+            // Добавление буферов для печати
+            AddInstruction("PRINT_BUF DB ' ' DUP(10)");
+            AddInstruction("BUFEND    DB '$'");
+            AddInstruction("data ends");
+        }
+
+        /// <summary>
+        /// Объявление сегментов стека и кода
+        /// </summary>
+        public static void DeclareStackAndCodeSegments()
+        {
+            AddInstruction("stk segment stack");
+            AddInstruction("db 256 dup ('?')");
+            AddInstruction("stk ends");
+
+            // Исправление: Удалены лишние атрибуты и перемещена директива ASSUME
+            AddInstruction("code segment");
+            AddInstruction("assume cs:code, ds:data, ss:stk");
+            AddInstruction("main proc");
+
+            AddInstruction("mov ax, data");
+            AddInstruction("mov ds, ax");
         }
 
         /// <summary>
@@ -100,7 +103,10 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         public static void DeclareEndOfMainProcedure()
         {
-            AddInstruction("mov ax,4c00h");
+            // Добавление вызова процедуры PRINT перед завершением программы, если необходимо
+            // Код для вывода должен быть добавлен в соответствующих местах синтаксического анализатора
+
+            AddInstruction("mov ax, 4c00h");
             AddInstruction("int 21h");
             AddInstruction("main endp");
         }
@@ -115,7 +121,6 @@ namespace Lexical_Analyzer_Libary.Classes
         }
 
         // Методы для генерации кода арифметических операций
-
         public static void GenerateAddition()
         {
             AddInstruction("pop bx");

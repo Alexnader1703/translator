@@ -5,6 +5,7 @@ begin
     if (x < y) then
         x = x + 1;
     else
-        y = y - 1;
-    endif
+        y = x;
+    endif;
+    print x;
 end

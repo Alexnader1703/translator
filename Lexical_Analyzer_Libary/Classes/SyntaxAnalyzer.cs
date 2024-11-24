@@ -1,5 +1,4 @@
-﻿using Lexical_Analyzer_Libary.Classes;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Lexical_Analyzer_Libary.Classes
@@ -193,10 +192,7 @@ namespace Lexical_Analyzer_Libary.Classes
                 var identifier = _lexicalAnalyzer.GetNameTable().FindByName(_lexicalAnalyzer.CurrentName);
                 if (identifier.Name != null)
                 {
-                    CodeGenerator.AddInstruction("push ax");
-                    CodeGenerator.AddInstruction($"mov ax, {identifier.Name}");
-                    CodeGenerator.AddInstruction("CALL PRINT");
-                    CodeGenerator.AddInstruction("pop ax");
+                    CodeGenerator.GeneratePrint(identifier.Name);
                     _lexicalAnalyzer.ParseNextLexem();
                 }
                 else
@@ -210,6 +206,7 @@ namespace Lexical_Analyzer_Libary.Classes
                 Error("Ожидался идентификатор после print");
             }
         }
+
 
         /// <summary>
         /// Разбирает выражение и генерирует соответствующий код для арифметических операций.
@@ -237,16 +234,10 @@ namespace Lexical_Analyzer_Libary.Classes
                 switch (operation)
                 {
                     case Lexems.Plus:
-                        CodeGenerator.AddInstruction("pop bx");
-                        CodeGenerator.AddInstruction("pop ax");
-                        CodeGenerator.AddInstruction("add ax, bx");
-                        CodeGenerator.AddInstruction("push ax");
+                        CodeGenerator.GenerateAddition();
                         break;
                     case Lexems.Minus:
-                        CodeGenerator.AddInstruction("pop bx");
-                        CodeGenerator.AddInstruction("pop ax");
-                        CodeGenerator.AddInstruction("sub ax, bx");
-                        CodeGenerator.AddInstruction("push ax");
+                        CodeGenerator.GenerateSubtraction();
                         break;
                 }
             }
@@ -272,17 +263,10 @@ namespace Lexical_Analyzer_Libary.Classes
                 switch (operation)
                 {
                     case Lexems.Multiplication:
-                        CodeGenerator.AddInstruction("pop bx");
-                        CodeGenerator.AddInstruction("pop ax");
-                        CodeGenerator.AddInstruction("mul bx");
-                        CodeGenerator.AddInstruction("push ax");
+                        CodeGenerator.GenerateMultiplication();
                         break;
                     case Lexems.Division:
-                        CodeGenerator.AddInstruction("pop bx");
-                        CodeGenerator.AddInstruction("pop ax");
-                        CodeGenerator.AddInstruction("cwd");
-                        CodeGenerator.AddInstruction("div bx");
-                        CodeGenerator.AddInstruction("push ax");
+                        CodeGenerator.GenerateDivision();
                         break;
                 }
             }
@@ -340,7 +324,6 @@ namespace Lexical_Analyzer_Libary.Classes
             CheckLexem(Lexems.If);
 
             // Генерация меток
-            CodeGenerator.GenerateLabel(); // Инкрементируем счетчик меток
             string lowerLabel = CodeGenerator.GenerateLabel();
             currentLabel = lowerLabel;
 
@@ -362,7 +345,6 @@ namespace Lexical_Analyzer_Libary.Classes
             {
                 _lexicalAnalyzer.ParseNextLexem();
 
-                CodeGenerator.GenerateLabel(); // Инкрементируем счетчик меток
                 lowerLabel = CodeGenerator.GenerateLabel();
                 currentLabel = lowerLabel;
 
@@ -397,10 +379,7 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             CheckLexem(Lexems.While);
 
-            CodeGenerator.GenerateLabel(); // Инкрементируем счетчик меток
             string upperLabel = CodeGenerator.GenerateLabel();
-
-            CodeGenerator.GenerateLabel();
             string lowerLabel = CodeGenerator.GenerateLabel();
             currentLabel = lowerLabel;
 
