@@ -314,6 +314,23 @@ namespace Lexical_Analyzer_Libary.Classes
                 CheckLexem(Lexems.RightPar);
                 return type;
             }
+            // Добавляем поддержку булевых литералов true и false
+            else if (_lexicalAnalyzer.CurrentLexem == Lexems.True)
+            {
+                CodeGenerator.AddInstruction("mov ax, 1");
+                CodeGenerator.AddInstruction("push ax");
+
+                _lexicalAnalyzer.ParseNextLexem();
+                return tType.Bool;
+            }
+            else if (_lexicalAnalyzer.CurrentLexem == Lexems.False)
+            {
+                CodeGenerator.AddInstruction("mov ax, 0");
+                CodeGenerator.AddInstruction("push ax");
+
+                _lexicalAnalyzer.ParseNextLexem();
+                return tType.Bool;
+            }
 
             Error($"Неожиданная лексема {_lexicalAnalyzer.CurrentLexem}");
             _lexicalAnalyzer.ParseNextLexem();
@@ -431,6 +448,12 @@ namespace Lexical_Analyzer_Libary.Classes
                 if (_lexicalAnalyzer.GetNameTable().FindByName(identifierName).Name == null)
                 {
                     _lexicalAnalyzer.GetNameTable().AddIdentifier(identifierName, tCat.Var, variableType);
+
+                    // Добавляем генерацию кода для инициализации булевых переменных
+                    if (variableType == tType.Bool)
+                    {
+                        CodeGenerator.AddInstruction($"mov {identifierName}, 0"); // Инициализация как false
+                    }
                 }
                 else
                 {
@@ -520,7 +543,12 @@ namespace Lexical_Analyzer_Libary.Classes
             CodeGenerator.DeclareDataSegment();
 
             _lexicalAnalyzer.ParseNextLexem();
-            ParseVariableDeclaration();
+
+            // Разрешаем несколько объявлений переменных перед Begin
+            while (_lexicalAnalyzer.CurrentLexem == Lexems.Type)
+            {
+                ParseVariableDeclaration();
+            }
 
             // Объявление переменных
             CodeGenerator.DeclareVariables(_lexicalAnalyzer.GetNameTable());
@@ -539,6 +567,7 @@ namespace Lexical_Analyzer_Libary.Classes
                 Error("Ожидалось начало блока кода (Begin)");
             }
 
+            // Остальной код остается без изменений
             CodeGenerator.DeclareEndOfMainProcedure();
             CodeGenerator.DeclarePrintProcedure();
             CodeGenerator.DeclareEndOfCode();

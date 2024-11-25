@@ -1,12 +1,12 @@
 bool c;
 int x;
 begin
-    c = 0;
-
+    c = True;
     if (c) then
-        x=10;
+        x = 10;
     else
-        x=20;
+        x = 30;
     endif;
-    print(x)
+    print x;
 end
+

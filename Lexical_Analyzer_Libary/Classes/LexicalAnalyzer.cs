@@ -65,6 +65,8 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("case", Lexems.Case);
             AddKeyword("of", Lexems.Of);
             AddKeyword("endcase", Lexems.EndCase);
+            AddKeyword("true", Lexems.True);
+            AddKeyword("false", Lexems.False);
 
         }
 
