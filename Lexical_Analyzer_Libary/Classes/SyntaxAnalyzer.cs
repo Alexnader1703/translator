@@ -140,6 +140,9 @@ namespace Lexical_Analyzer_Libary.Classes
                 case Lexems.While:
                     ParseWhileLoop();
                     break;
+                case Lexems.Case:
+                    ParseCaseStatement();
+                    break;
                 case Lexems.Type:
                     ParseVariableDeclaration();
                     break;
@@ -157,6 +160,7 @@ namespace Lexical_Analyzer_Libary.Classes
                     break;
             }
         }
+
 
         /// <summary>
         /// Разбирает оператор присваивания и генерирует соответствующий код.
@@ -553,5 +557,103 @@ namespace Lexical_Analyzer_Libary.Classes
                 Console.WriteLine("Синтаксический анализ завершен успешно");
             }
         }
+        /// <summary>
+        /// Разбирает конструкцию CASE и генерирует соответствующий код.
+        /// </summary>
+        private void ParseCaseStatement()
+        {
+            CheckLexem(Lexems.Case); // Ожидаем ключевое слово CASE
+
+            if (_lexicalAnalyzer.CurrentLexem != Lexems.Name)
+            {
+                Error("Ожидался идентификатор после CASE");
+                return;
+            }
+
+            string caseVariable = _lexicalAnalyzer.CurrentName; // Сохраняем имя переменной
+            var identifier = _lexicalAnalyzer.GetNameTable().FindByName(caseVariable);
+            if (identifier.Name == null || identifier.Type != tType.Int)
+            {
+                Error($"Переменная '{caseVariable}' не определена или не является целочисленной");
+                return;
+            }
+
+            _lexicalAnalyzer.ParseNextLexem();
+            CheckLexem(Lexems.Of); // Ожидаем ключевое слово OF
+
+            // Генерация кода для загрузки переменной в регистр
+            CodeGenerator.AddInstruction($"mov ax, {caseVariable}");
+
+            string endLabel = CodeGenerator.GenerateLabel(); // Метка конца CASE
+            Dictionary<int, string> caseLabels = new Dictionary<int, string>();
+
+            // Разбор списка альтернатив
+            while (_lexicalAnalyzer.CurrentLexem == Lexems.Number)
+            {
+                int caseValue = _lexicalAnalyzer.CurrentNumber; // Значение альтернативы
+                string caseLabel = CodeGenerator.GenerateLabel();
+                caseLabels[caseValue] = caseLabel;
+
+                _lexicalAnalyzer.ParseNextLexem();
+                CheckLexem(Lexems.Colon); // Ожидаем двоеточие после значения
+
+                CodeGenerator.AddLabel(caseLabel);
+                ParseCaseStatementSequence(); // Разбираем тело альтернативы
+
+                CodeGenerator.AddInstruction($"jmp {endLabel}"); // Переход в конец CASE
+            }
+
+            // Генерация кодов сравнений для каждого case
+            foreach (var caseEntry in caseLabels)
+            {
+                CodeGenerator.AddInstruction($"cmp ax, {caseEntry.Key}");
+                CodeGenerator.AddInstruction($"je {caseEntry.Value}");
+            }
+
+            CheckLexem(Lexems.EndCase); // Ожидаем ключевое слово ENDCASE
+          
+            CodeGenerator.AddLabel(endLabel); // Метка конца CASE
+        }
+
+        /// <summary>
+        /// Разбирает последовательность операторов внутри одной альтернативы CASE.
+        /// </summary>
+        private void ParseCaseStatementSequence()
+        {
+            while (true)
+            {
+                // Проверяем, не достигли ли конца альтернативы или конца конструкции CASE
+                if (_lexicalAnalyzer.CurrentLexem == Lexems.Number ||
+                    _lexicalAnalyzer.CurrentLexem == Lexems.EndCase ||
+                    _lexicalAnalyzer.CurrentLexem == Lexems.EOF)
+                {
+                    break; // Переходим к следующей альтернативе или завершаем CASE
+                }
+
+                ParseStatement(); // Разбираем один оператор
+
+                // Если текущая лексема завершает альтернативу или конструкцию CASE, выходим из цикла
+                if (_lexicalAnalyzer.CurrentLexem == Lexems.Number ||
+                    _lexicalAnalyzer.CurrentLexem == Lexems.EndCase ||
+                    _lexicalAnalyzer.CurrentLexem == Lexems.EOF)
+                {
+                    break;
+                }
+
+                // Если встретили точку с запятой, считываем следующую лексему
+                if (_lexicalAnalyzer.CurrentLexem == Lexems.Semi)
+                {
+                    _lexicalAnalyzer.ParseNextLexem();
+                }
+                else
+                {
+                    // Если текущая лексема не завершает альтернативу, продолжаем разбор
+                    _lexicalAnalyzer.ParseNextLexem();
+                }
+            }
+        }
+
+
+
     }
 }

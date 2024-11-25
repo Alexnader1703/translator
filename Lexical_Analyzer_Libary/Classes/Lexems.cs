@@ -20,7 +20,7 @@ namespace Lexical_Analyzer_Libary.Classes
         Else, ElseIf,           // else
         EndIf,          // endif
         Do,             // do
-        While, EndWhile, For,          // while
+        While, EndWhile, For,Case,Of,EndCase, Colon,        // while
         // Арифметические операторы
         Plus,           // +
         Minus,          // -

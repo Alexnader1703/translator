@@ -62,6 +62,9 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("do", Lexems.Do);
             AddKeyword("for", Lexems.For);
             AddKeyword("print", Lexems.Print);
+            AddKeyword("case", Lexems.Case);
+            AddKeyword("of", Lexems.Of);
+            AddKeyword("endcase", Lexems.EndCase);
 
         }
 
@@ -484,6 +487,9 @@ namespace Lexical_Analyzer_Libary.Classes
                     {
                         CurrentLexem = Lexems.Greater;
                     }
+                    break;
+                case ':':
+                    CurrentLexem = Lexems.Colon;
                     break;
 
                 case ';':

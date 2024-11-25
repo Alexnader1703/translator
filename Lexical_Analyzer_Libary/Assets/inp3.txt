@@ -1,9 +1,15 @@
-int i, sum, c;
+int x,y;
 begin
-    sum = 0;
-    c = 5;
-    for i = 1 to c do
-        sum = sum + i;
-    endfor;
-    print sum;
+   x = 3;
+   CASE x OF
+    1: 
+        y=1;
+    2: 
+        y=2;
+    3: 
+        y=3;
+    4: 
+        y=4;
+ENDCASE;
+    print y;
 end
