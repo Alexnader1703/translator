@@ -1,0 +1,12 @@
+bool c;
+int x;
+begin
+    c = 0;
+
+    if (c) then
+        x=10;
+    else
+        x=20;
+    endif;
+    print(x)
+end

@@ -29,12 +29,11 @@ namespace Lexical_Analyzer_Libary.Classes
         /// <exception cref="Exception">Выбрасывается, если идентификатор с таким именем уже существует</exception>
         public Identifier AddIdentifier(string name, tCat category, tType type = tType.None)
         {
-            // Проверяем, существует ли идентификатор с таким именем
             if (FindByName(name).Name != null)
                 throw new Exception($"Идентификатор с именем '{name}' уже существует.");
 
             Identifier identifier = new Identifier(name, type, category);
-            identifiers.AddLast(identifier);  // Добавляем в конец списка
+            identifiers.AddLast(identifier); 
             return identifier;
         }
 
@@ -50,7 +49,7 @@ namespace Lexical_Analyzer_Libary.Classes
                 if (identifier.Name == name)
                     return identifier;
             }
-            return default;  // Возвращаем пустую структуру, если идентификатор не найден
+            return default;  
         }
 
         /// <summary>

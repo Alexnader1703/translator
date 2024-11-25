@@ -35,7 +35,6 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         public static void DeclareDataSegment()
         {
-            // Исправление: Удалены лишние атрибуты
             AddInstruction("data segment");
         }
 
@@ -65,7 +64,6 @@ namespace Lexical_Analyzer_Libary.Classes
             AddInstruction("db 256 dup ('?')");
             AddInstruction("stk ends");
 
-            // Исправление: Удалены лишние атрибуты и перемещена директива ASSUME
             AddInstruction("code segment");
             AddInstruction("assume cs:code, ds:data, ss:stk");
             AddInstruction("main proc");
@@ -103,8 +101,6 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         public static void DeclareEndOfMainProcedure()
         {
-            // Добавление вызова процедуры PRINT перед завершением программы, если необходимо
-            // Код для вывода должен быть добавлен в соответствующих местах синтаксического анализатора
 
             AddInstruction("mov ax, 4c00h");
             AddInstruction("int 21h");

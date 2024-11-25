@@ -4,8 +4,10 @@ begin
     y = 10;
     if (x < y) then
         x = x + 1;
+    elseif (x > y) then
+        x = y
     else
-        y = x;
+        x = y*x;
     endif;
     print x;
 end

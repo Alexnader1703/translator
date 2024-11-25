@@ -156,11 +156,11 @@ namespace Lexical_Analyzer_Libary.Classes
                 }
 
                 // Проверка на комментарии
-                if (_reader.CurrentSymbol == '/')
+                if (_reader.CurrentSymbol == '&')
                 {
                     _reader.ReadNextSymbol();
 
-                    if (_reader.CurrentSymbol == '/') // Однострочный комментарий
+                    if (_reader.CurrentSymbol == '&') // Однострочный комментарий
                     {
                         while (_reader.CurrentSymbol != '\n' && _reader.CurrentSymbol != '\0')
                         {
@@ -177,7 +177,7 @@ namespace Lexical_Analyzer_Libary.Classes
                             if (_reader.CurrentSymbol == '*')
                             {
                                 _reader.ReadNextSymbol();
-                                if (_reader.CurrentSymbol == '/')
+                                if (_reader.CurrentSymbol == '&')
                                 {
                                     commentClosed = true;
                                     _reader.ReadNextSymbol();

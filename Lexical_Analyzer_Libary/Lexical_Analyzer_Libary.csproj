@@ -52,13 +52,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Assets\inp.txt" />
+    <Resource Include="Assets\test_if.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\inp0.txt" />
-    <Content Include="Assets\inp1.txt" />
-    <Content Include="Assets\inp2.txt" />
-    <Content Include="Assets\inp3.txt" />
+    <Content Include="Assets\test_bool.txt" />
+    <Content Include="Assets\test_arifm.txt" />
+    <Content Include="Assets\test_while.txt" />
+    <Content Include="Assets\test_case.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

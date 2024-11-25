@@ -11,10 +11,10 @@ namespace Lexical_Analyzer_Libary.Classes
     /// </summary>
     public enum tType
     {
-        None,  // Неопределенный тип
-        Int,   // Целое число
+        None,  
+        Int,   
         Bool,
-        String, Float, Double, Char// Логическое значение
+        String, Float, Double, Char
     };
 
     /// <summary>
@@ -36,7 +36,6 @@ namespace Lexical_Analyzer_Libary.Classes
         public tType Type;   // Тип идентификатора
         public tCat Category;  // Категория идентификатора
 
-        // Конструктор для инициализации структуры
         public Identifier(string name, tType type, tCat category)
         {
             Name = name;

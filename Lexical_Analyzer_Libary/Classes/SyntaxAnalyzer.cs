@@ -539,7 +539,6 @@ namespace Lexical_Analyzer_Libary.Classes
                 Error("Ожидалось начало блока кода (Begin)");
             }
 
-            // Завершение основной процедуры и кода
             CodeGenerator.DeclareEndOfMainProcedure();
             CodeGenerator.DeclarePrintProcedure();
             CodeGenerator.DeclareEndOfCode();
@@ -581,10 +580,9 @@ namespace Lexical_Analyzer_Libary.Classes
             _lexicalAnalyzer.ParseNextLexem();
             CheckLexem(Lexems.Of);
 
-            // Собираем информацию о всех case-ветках
+
             var cases = new List<(int value, string label, List<string> instructions)>();
 
-            // Сохраняем код для каждой ветки при первом проходе
             while (_lexicalAnalyzer.CurrentLexem == Lexems.Number)
             {
                 int value = _lexicalAnalyzer.CurrentNumber;
@@ -598,8 +596,6 @@ namespace Lexical_Analyzer_Libary.Classes
                 while (_lexicalAnalyzer.CurrentLexem != Lexems.Number &&
                        _lexicalAnalyzer.CurrentLexem != Lexems.EndCase)
                 {
-                    // Здесь вместо непосредственной генерации кода
-                    // сохраняем инструкции для последующей генерации
                     var currentInstructions = ParseStatementCase();
                     branchInstructions.AddRange(currentInstructions);
                 }
@@ -607,7 +603,6 @@ namespace Lexical_Analyzer_Libary.Classes
                 cases.Add((value, label, branchInstructions));
             }
 
-            // Теперь генерируем весь код в правильном порядке
 
             // 1. Загрузка переменной
             CodeGenerator.AddInstruction($"mov ax, {caseVariable}");
@@ -639,12 +634,11 @@ namespace Lexical_Analyzer_Libary.Classes
             CodeGenerator.AddLabel(endLabel);
         }
 
-        // Вспомогательный метод для парсинга отдельного оператора
+
         private List<string> ParseStatementCase()
         {
             var instructions = new List<string>();
 
-            // В зависимости от текущей лексемы генерируем соответствующие инструкции
             switch (_lexicalAnalyzer.CurrentLexem)
             {
                 case Lexems.Name:
@@ -666,7 +660,6 @@ namespace Lexical_Analyzer_Libary.Classes
                     _lexicalAnalyzer.ParseNextLexem();
                     break;
 
-                // Добавьте другие случаи по необходимости
 
                 default:
                     _lexicalAnalyzer.ParseNextLexem();
