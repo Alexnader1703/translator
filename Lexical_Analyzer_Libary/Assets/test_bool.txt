@@ -1,12 +1,13 @@
 bool c;
 int x;
 begin
-    c = True;
-    if (c) then
+    c = False;
+    if (c==True) then
         x = 10;
     else
         x = 30;
     endif;
     print x;
 end
+
 
