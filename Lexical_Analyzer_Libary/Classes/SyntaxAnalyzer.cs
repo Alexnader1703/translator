@@ -8,7 +8,6 @@ namespace Lexical_Analyzer_Libary.Classes
         private LexicalAnalyzer _lexicalAnalyzer;
         public List<string> _errors;
 
-        // Поле для хранения текущей метки
         private string currentLabel = "";
 
         public SyntaxAnalyzer(LexicalAnalyzer lexicalAnalyzer)
@@ -77,22 +76,45 @@ namespace Lexical_Analyzer_Libary.Classes
 
         private void ParseStatementSequence()
         {
-            while (true)
+            bool foundEnd = false;
+            int maxStatements = 1000; // Защита от бесконечного цикла
+            int statementCount = 0;
+
+            while (!foundEnd && statementCount < maxStatements)
             {
-                // Проверяем наличие конца блока
+                statementCount++;
+
+                // Сначала проверяем EOF
+                if (_lexicalAnalyzer.CurrentLexem == Lexems.EOF)
+                {
+                    Error("Неожиданный конец файла. Ожидалось 'end'");
+                    return; // Немедленно прекращаем разбор
+                }
+
+                // Затем проверяем завершающие токены
                 if (_lexicalAnalyzer.CurrentLexem == Lexems.End ||
-                    _lexicalAnalyzer.CurrentLexem == Lexems.EOF ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.EndIf ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.Else ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.EndWhile ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.ElseIf)
                 {
-                    break; // Конец блока или файла
+                    foundEnd = true;
+                    break;
                 }
 
-                ParseStatement();
+                // Разбор очередного оператора
+                try
+                {
+                    ParseStatement();
+                }
+                catch (Exception ex)
+                {
+                    Error($"Ошибка при разборе оператора: {ex.Message}");
+                    SkipToNextStatement();
+                    continue;
+                }
 
-                // Проверка точки с запятой после каждого оператора, кроме блоков if и else
+                // Проверка точки с запятой
                 if (_lexicalAnalyzer.CurrentLexem == Lexems.Semi)
                 {
                     _lexicalAnalyzer.ParseNextLexem();
@@ -104,26 +126,52 @@ namespace Lexical_Analyzer_Libary.Classes
                          _lexicalAnalyzer.CurrentLexem != Lexems.EndWhile)
                 {
                     Error("Ожидается точка с запятой");
-                    // Пропуск до следующей точки с запятой или конца блока
-                    while (_lexicalAnalyzer.CurrentLexem != Lexems.Semi &&
-                           _lexicalAnalyzer.CurrentLexem != Lexems.End &&
-                           _lexicalAnalyzer.CurrentLexem != Lexems.EOF &&
-                           _lexicalAnalyzer.CurrentLexem != Lexems.EndIf &&
-                           _lexicalAnalyzer.CurrentLexem != Lexems.Else &&
-                           _lexicalAnalyzer.CurrentLexem != Lexems.EndWhile)
-                    {
-                        _lexicalAnalyzer.ParseNextLexem();
-                    }
-
-                    // Если нашли точку с запятой, считываем следующую лексему
-                    if (_lexicalAnalyzer.CurrentLexem == Lexems.Semi)
-                    {
-                        _lexicalAnalyzer.ParseNextLexem();
-                    }
+                    SkipToNextStatement();
                 }
+            }
+
+            // Проверка на превышение максимального количества операторов
+            if (statementCount >= maxStatements)
+            {
+                Error("Превышено максимальное количество операторов в блоке. Возможно, пропущено 'end'");
+                return;
+            }
+
+            // Если мы не нашли конец блока
+            if (!foundEnd)
+            {
+                Error("Ожидалось 'end' в конце блока");
             }
         }
 
+        private void SkipToNextStatement()
+        {
+            int maxSkips = 100; // Защита от зацикливания
+            int skipCount = 0;
+
+            while (skipCount < maxSkips &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.Semi &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.End &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.EOF &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.EndIf &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.Else &&
+                   _lexicalAnalyzer.CurrentLexem != Lexems.EndWhile)
+            {
+                _lexicalAnalyzer.ParseNextLexem();
+                skipCount++;
+            }
+
+            if (skipCount >= maxSkips)
+            {
+                Error("Не удалось найти конец оператора");
+                return;
+            }
+
+            if (_lexicalAnalyzer.CurrentLexem == Lexems.Semi)
+            {
+                _lexicalAnalyzer.ParseNextLexem();
+            }
+        }
         /// <summary>
         /// Разбирает отдельный оператор в зависимости от текущей лексемы.
         /// </summary>
@@ -541,21 +589,16 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             // Объявление сегмента данных
             CodeGenerator.DeclareDataSegment();
-
             _lexicalAnalyzer.ParseNextLexem();
-
             // Разрешаем несколько объявлений переменных перед Begin
             while (_lexicalAnalyzer.CurrentLexem == Lexems.Type)
             {
                 ParseVariableDeclaration();
             }
-
             // Объявление переменных
             CodeGenerator.DeclareVariables(_lexicalAnalyzer.GetNameTable());
-
             // Объявление сегментов стека и кода
             CodeGenerator.DeclareStackAndCodeSegments();
-
             if (_lexicalAnalyzer.CurrentLexem == Lexems.Begin)
             {
                 _lexicalAnalyzer.ParseNextLexem();
@@ -566,12 +609,10 @@ namespace Lexical_Analyzer_Libary.Classes
             {
                 Error("Ожидалось начало блока кода (Begin)");
             }
-
             // Остальной код остается без изменений
             CodeGenerator.DeclareEndOfMainProcedure();
             CodeGenerator.DeclarePrintProcedure();
             CodeGenerator.DeclareEndOfCode();
-
             if (_errors.Count > 0)
             {
                 Console.WriteLine("Обнаружены ошибки:");
