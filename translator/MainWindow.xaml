@@ -86,11 +86,28 @@
             <Setter Property="Foreground" Value="{StaticResource ForegroundBrush}"/>
             <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
         </Style>
+
+        <!-- Пользовательский стиль для ToolBar, чтобы убрать гриппер и кнопку переполнения -->
+        <Style x:Key="CustomToolBarStyle" TargetType="ToolBar">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToolBar">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
+                                <WrapPanel IsItemsHost="True" Orientation="Horizontal"/>
+                            </ScrollViewer>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <DockPanel>
         <!-- Панель инструментов -->
-        <ToolBar DockPanel.Dock="Top" Background="{StaticResource PrimaryBrush}">
+        <ToolBar DockPanel.Dock="Top" Background="{StaticResource PrimaryBrush}" Style="{StaticResource CustomToolBarStyle}">
             <!-- Кнопка "Открыть" -->
             <Button Style="{StaticResource ToolbarButtonStyle}" Click="OpenFile_Click" ToolTip="Открыть файл">
                 <Image Source="pack://application:,,,/Assets/logo/open_file.png" Width="24" Height="24"/>
@@ -106,6 +123,10 @@
             <!-- Кнопка "Запуск программы" -->
             <Button Style="{StaticResource ToolbarButtonStyle}" Click="Run_Click" ToolTip="Запустить программу">
                 <Image Source="pack://application:,,,/Assets/logo/run.png" Width="30" Height="30"/>
+            </Button>
+            <!-- Кнопка "Подсветить синтаксис" -->
+            <Button Style="{StaticResource ToolbarButtonStyle}" Click="HighlightSyntax_Click" ToolTip="Подсветить синтаксис">
+                <Image Source="pack://application:,,,/Assets/logo/highlight.png" Width="24" Height="24"/>
             </Button>
         </ToolBar>
 
@@ -123,7 +144,7 @@
             <!-- Поле для ввода псевдокода -->
             <GroupBox Grid.Column="0" Grid.Row="0" Header="Псевдокод">
                 <Grid>
-                    <RichTextBox Name="SourceTextBox" TextChanged="SourceTextBox_TextChanged" AcceptsTab="True"/>
+                    <RichTextBox Name="SourceTextBox" AcceptsTab="True"/>
                 </Grid>
             </GroupBox>
 

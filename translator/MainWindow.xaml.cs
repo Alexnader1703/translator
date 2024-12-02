@@ -75,6 +75,7 @@ namespace translator
                 finally
                 {
                     _reader.Close();
+                    ApplySyntaxHighlighting();
                 }
             }
         }
@@ -283,46 +284,22 @@ Code.exe";
             return false;
         }
        
-        private TextPointer GetTextPointerAtOffset(TextPointer start, int offset)
-        {
-            //dfsdf
-            TextPointer navigator = start;
-            int count = 0;
-
-            while (navigator != null)
-            {
-                if (navigator.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
-                {
-                    string textRun = navigator.GetTextInRun(LogicalDirection.Forward);
-                    int runLength = textRun.Length;
-
-                    if (count + runLength >= offset)
-                    {
-                        return navigator.GetPositionAtOffset(offset - count);
-                    }
-
-                    count += runLength;
-                    navigator = navigator.GetPositionAtOffset(runLength);
-                }
-                else
-                {
-                    navigator = navigator.GetNextContextPosition(LogicalDirection.Forward);
-                }
-            }
-
-            return start;
-        }
+      
         private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+          
+        }
+        private void ApplySyntaxHighlighting()
         {
             // Сохраняем текущую позицию каретки
             TextPointer caretPosition = SourceTextBox.CaretPosition;
 
-            // Отключаем обработчик события, чтобы избежать рекурсии
-            SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
-
             // Получаем весь текст из RichTextBox
             TextRange documentRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
             string text = documentRange.Text;
+
+            // Отключаем обработчик события TextChanged, если он есть
+            SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
 
             // Очищаем все форматирование
             documentRange.ClearAllProperties();
@@ -334,7 +311,7 @@ Code.exe";
             SolidColorBrush variableBrush = new SolidColorBrush(Color.FromRgb(111, 202, 245));   // rgb(111,202,245)
             SolidColorBrush printBrush = new SolidColorBrush(Color.FromRgb(213, 202, 121));      // rgb(213,202,121)
             SolidColorBrush numberBrush = new SolidColorBrush(Color.FromRgb(174, 187, 116));     // rgb(174,187,116)
-            SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));     // Выбран оранжевый цвет для begin и end
+            SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));     // Цвет для begin и end
             SolidColorBrush defaultBrush = Brushes.White; // Цвет по умолчанию
 
             // Устанавливаем цвет по умолчанию для всего текста
@@ -350,34 +327,33 @@ Code.exe";
             string variablePattern = @"\b[A-Za-z_][A-Za-z0-9_]*\b";
 
             // Применяем подсветку для комментариев
-            ApplySyntaxHighlighting(text, commentPattern, commentBrush, RegexOptions.Multiline);
+            ApplyHighlightingToPattern(text, commentPattern, commentBrush, RegexOptions.Multiline);
 
             // Применяем подсветку для begin и end
-            ApplySyntaxHighlighting(text, beginEndPattern, beginEndBrush);
+            ApplyHighlightingToPattern(text, beginEndPattern, beginEndBrush);
 
             // Применяем подсветку для print
-            ApplySyntaxHighlighting(text, printPattern, printBrush);
+            ApplyHighlightingToPattern(text, printPattern, printBrush);
 
             // Применяем подсветку для конструкций
-            ApplySyntaxHighlighting(text, constructsPattern, constructsBrush);
+            ApplyHighlightingToPattern(text, constructsPattern, constructsBrush);
 
             // Применяем подсветку для типов данных
-            ApplySyntaxHighlighting(text, typePattern, typeBrush);
+            ApplyHighlightingToPattern(text, typePattern, typeBrush);
 
             // Применяем подсветку для чисел
-            ApplySyntaxHighlighting(text, numberPattern, numberBrush);
+            ApplyHighlightingToPattern(text, numberPattern, numberBrush);
 
             // Применяем подсветку для переменных, исключая уже подсвеченные слова
-            ApplySyntaxHighlighting(text, variablePattern, variableBrush, excludePatterns: new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
+            ApplyHighlightingToPattern(text, variablePattern, variableBrush, excludePatterns: new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
 
             // Восстанавливаем позицию каретки
             SourceTextBox.CaretPosition = caretPosition;
 
-            // Включаем обработчик обратно
-            SourceTextBox.TextChanged += SourceTextBox_TextChanged;
+            // Включаем обработчик обратно, если он нужен
+            // SourceTextBox.TextChanged += SourceTextBox_TextChanged;
         }
-
-        private void ApplySyntaxHighlighting(string text, string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
+        private void ApplyHighlightingToPattern(string text, string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
         {
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | options);
 
@@ -405,6 +381,10 @@ Code.exe";
                 TextRange range = new TextRange(start, end);
                 range.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
             }
+        }
+        private void HighlightSyntax_Click(object sender, RoutedEventArgs e)
+        {
+            ApplySyntaxHighlighting();
         }
 
         private TextPointer GetTextPositionAtOffset(TextPointer start, int offset)
@@ -436,6 +416,8 @@ Code.exe";
             return start;
         }
 
+
+      
 
 
     }
