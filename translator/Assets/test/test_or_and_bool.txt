@@ -1,12 +1,16 @@
 bool x, y;
-int c;
+int c,z,t;
 begin
-    x = True;
+    z = 10;
+    t = 5;
+    x = z>t;
     y = False;
-    if (x < y && x>y) then
+    if (x || y) then
         c = 1;
     else
         c=0;
     endif;
     print c;
 end
+
+

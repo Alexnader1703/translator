@@ -291,18 +291,20 @@ Code.exe";
         }
         private void ApplySyntaxHighlighting()
         {
-            // Сохраняем текущую позицию каретки
-            TextPointer caretPosition = SourceTextBox.CaretPosition;
+            // Получаем текст из RichTextBox
+            TextRange textRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+            string text = textRange.Text;
 
-            // Получаем весь текст из RichTextBox
-            TextRange documentRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
-            string text = documentRange.Text;
+            // Сохраняем текущую позицию каретки
+            int caretOffset = GetTextLength(SourceTextBox.Document.ContentStart, SourceTextBox.CaretPosition);
 
             // Отключаем обработчик события TextChanged, если он есть
             SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
 
-            // Очищаем все форматирование
-            documentRange.ClearAllProperties();
+            // Очищаем документ и создаем новый с единообразной структурой
+            SourceTextBox.Document.Blocks.Clear();
+            Paragraph paragraph = new Paragraph();
+            SourceTextBox.Document.Blocks.Add(paragraph);
 
             // Определяем кисти с указанными цветами
             SolidColorBrush constructsBrush = new SolidColorBrush(Color.FromRgb(180, 118, 175)); // rgb(180,118,175)
@@ -314,10 +316,7 @@ Code.exe";
             SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));     // Цвет для begin и end
             SolidColorBrush defaultBrush = Brushes.White; // Цвет по умолчанию
 
-            // Устанавливаем цвет по умолчанию для всего текста
-            documentRange.ApplyPropertyValue(TextElement.ForegroundProperty, defaultBrush);
-
-            // Определяем паттерны для подсветки
+            // Паттерны для подсветки
             string constructsPattern = @"\b(if|else|elseif|endif|while|endwhile|for|do|case|ENDCASE|then|true|false)\b";
             string printPattern = @"\bprint\b";
             string beginEndPattern = @"\b(begin|end)\b";
@@ -326,32 +325,151 @@ Code.exe";
             string numberPattern = @"\b\d+(\.\d+)?\b";
             string variablePattern = @"\b[A-Za-z_][A-Za-z0-9_]*\b";
 
-            // Применяем подсветку для комментариев
-            ApplyHighlightingToPattern(text, commentPattern, commentBrush, RegexOptions.Multiline);
+            // Список для хранения разбитых элементов текста
+            List<Inline> inlines = new List<Inline>();
 
-            // Применяем подсветку для begin и end
-            ApplyHighlightingToPattern(text, beginEndPattern, beginEndBrush);
+            int lastIndex = 0;
 
-            // Применяем подсветку для print
-            ApplyHighlightingToPattern(text, printPattern, printBrush);
+            // Список всех совпадений
+            var matches = new List<(int Index, int Length, Brush Brush)>();
 
-            // Применяем подсветку для конструкций
-            ApplyHighlightingToPattern(text, constructsPattern, constructsBrush);
+            void AddMatches(string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
+            {
+                Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | options);
+                foreach (Match match in regex.Matches(text))
+                {
+                    // Проверяем на исключения
+                    if (excludePatterns != null && excludePatterns.Any(ep => Regex.IsMatch(match.Value, ep, RegexOptions.IgnoreCase)))
+                        continue;
 
-            // Применяем подсветку для типов данных
-            ApplyHighlightingToPattern(text, typePattern, typeBrush);
+                    matches.Add((match.Index, match.Length, brush));
+                }
+            }
 
-            // Применяем подсветку для чисел
-            ApplyHighlightingToPattern(text, numberPattern, numberBrush);
+            // Собираем все совпадения
+            AddMatches(commentPattern, commentBrush, RegexOptions.Multiline);
+            AddMatches(beginEndPattern, beginEndBrush);
+            AddMatches(printPattern, printBrush);
+            AddMatches(constructsPattern, constructsBrush);
+            AddMatches(typePattern, typeBrush);
+            AddMatches(numberPattern, numberBrush);
+            AddMatches(variablePattern, variableBrush, RegexOptions.None, new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
 
-            // Применяем подсветку для переменных, исключая уже подсвеченные слова
-            ApplyHighlightingToPattern(text, variablePattern, variableBrush, excludePatterns: new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
+            // Сортируем совпадения по индексу
+            matches = matches.OrderBy(m => m.Index).ToList();
+
+            foreach (var match in matches)
+            {
+                if (match.Index > lastIndex)
+                {
+                    // Добавляем текст до совпадения
+                    string beforeText = text.Substring(lastIndex, match.Index - lastIndex);
+                    Run beforeRun = new Run(beforeText) { Foreground = defaultBrush };
+                    inlines.Add(beforeRun);
+                }
+
+                // Добавляем совпавший текст
+                string matchText = text.Substring(match.Index, match.Length);
+                Run matchRun = new Run(matchText) { Foreground = match.Brush };
+                inlines.Add(matchRun);
+
+                lastIndex = match.Index + match.Length;
+            }
+
+            // Добавляем оставшийся текст
+            if (lastIndex < text.Length)
+            {
+                string afterText = text.Substring(lastIndex);
+                Run afterRun = new Run(afterText) { Foreground = defaultBrush };
+                inlines.Add(afterRun);
+            }
+
+            // Очищаем и заполняем параграф новыми инлайнами
+            paragraph.Inlines.Clear();
+            foreach (var inline in inlines)
+            {
+                paragraph.Inlines.Add(inline);
+            }
 
             // Восстанавливаем позицию каретки
-            SourceTextBox.CaretPosition = caretPosition;
+            SourceTextBox.CaretPosition = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, caretOffset);
 
             // Включаем обработчик обратно, если он нужен
             // SourceTextBox.TextChanged += SourceTextBox_TextChanged;
+        }
+        private int GetTextLength(TextPointer start, TextPointer end)
+        {
+            return new TextRange(start, end).Text.Length;
+        }
+        private List<Inline> FormatTextRuns(string text,
+                                            string constructsPattern, Brush constructsBrush,
+                                            string typePattern, Brush typeBrush,
+                                            string commentPattern, Brush commentBrush,
+                                            string variablePattern, Brush variableBrush,
+                                            string printPattern, Brush printBrush,
+                                            string numberPattern, Brush numberBrush,
+                                            string beginEndPattern, Brush beginEndBrush,
+                                            Brush defaultBrush)
+        {
+            // Создаем список инлайнов
+            List<Inline> inlines = new List<Inline>();
+
+            // Объединяем все паттерны в один с именованными группами
+            string pattern = $@"(?<Constructs>{constructsPattern})|
+                        (?<Type>{typePattern})|
+                        (?<Comment>{commentPattern})|
+                        (?<Variable>{variablePattern})|
+                        (?<Print>{printPattern})|
+                        (?<Number>{numberPattern})|
+                        (?<BeginEnd>{beginEndPattern})";
+
+            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
+
+            int lastIndex = 0;
+
+            foreach (Match match in regex.Matches(text))
+            {
+                // Добавляем текст до совпадения
+                if (match.Index > lastIndex)
+                {
+                    string beforeText = text.Substring(lastIndex, match.Index - lastIndex);
+                    Run beforeRun = new Run(beforeText) { Foreground = defaultBrush };
+                    inlines.Add(beforeRun);
+                }
+
+                // Определяем тип совпадения и устанавливаем соответствующий цвет
+                Brush brush = defaultBrush;
+
+                if (match.Groups["Constructs"].Success)
+                    brush = constructsBrush;
+                else if (match.Groups["Type"].Success)
+                    brush = typeBrush;
+                else if (match.Groups["Comment"].Success)
+                    brush = commentBrush;
+                else if (match.Groups["Variable"].Success)
+                    brush = variableBrush;
+                else if (match.Groups["Print"].Success)
+                    brush = printBrush;
+                else if (match.Groups["Number"].Success)
+                    brush = numberBrush;
+                else if (match.Groups["BeginEnd"].Success)
+                    brush = beginEndBrush;
+
+                Run matchRun = new Run(match.Value) { Foreground = brush };
+                inlines.Add(matchRun);
+
+                lastIndex = match.Index + match.Length;
+            }
+
+            // Добавляем оставшийся текст после последнего совпадения
+            if (lastIndex < text.Length)
+            {
+                string afterText = text.Substring(lastIndex);
+                Run afterRun = new Run(afterText) { Foreground = defaultBrush };
+                inlines.Add(afterRun);
+            }
+
+            return inlines;
         }
         private void ApplyHighlightingToPattern(string text, string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
         {
@@ -390,34 +508,30 @@ Code.exe";
         private TextPointer GetTextPositionAtOffset(TextPointer start, int offset)
         {
             TextPointer current = start;
-            int currentOffset = 0;
+            int count = 0;
 
             while (current != null)
             {
                 if (current.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
                 {
                     string text = current.GetTextInRun(LogicalDirection.Forward);
-                    int textLength = text.Length;
-
-                    if (currentOffset + textLength >= offset)
+                    if (count + text.Length >= offset)
                     {
-                        return current.GetPositionAtOffset(offset - currentOffset);
+                        return current.GetPositionAtOffset(offset - count, LogicalDirection.Forward);
                     }
-
-                    currentOffset += textLength;
-                    current = current.GetPositionAtOffset(textLength);
+                    count += text.Length;
+                    current = current.GetPositionAtOffset(text.Length, LogicalDirection.Forward);
                 }
                 else
                 {
                     current = current.GetNextContextPosition(LogicalDirection.Forward);
                 }
             }
-
             return start;
         }
 
 
-      
+
 
 
     }
