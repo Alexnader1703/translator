@@ -67,6 +67,8 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("endcase", Lexems.EndCase);
             AddKeyword("true", Lexems.True);
             AddKeyword("false", Lexems.False);
+            AddKeyword("and", Lexems.And);
+            AddKeyword("or", Lexems.Or);
 
         }
 
@@ -158,11 +160,11 @@ namespace Lexical_Analyzer_Libary.Classes
                 }
 
                 // Проверка на комментарии
-                if (_reader.CurrentSymbol == '&')
+                if (_reader.CurrentSymbol == '$')
                 {
                     _reader.ReadNextSymbol();
 
-                    if (_reader.CurrentSymbol == '&') // Однострочный комментарий
+                    if (_reader.CurrentSymbol == '$') // Однострочный комментарий
                     {
                         while (_reader.CurrentSymbol != '\n' && _reader.CurrentSymbol != '\0')
                         {
@@ -179,7 +181,7 @@ namespace Lexical_Analyzer_Libary.Classes
                             if (_reader.CurrentSymbol == '*')
                             {
                                 _reader.ReadNextSymbol();
-                                if (_reader.CurrentSymbol == '&')
+                                if (_reader.CurrentSymbol == '$')
                                 {
                                     commentClosed = true;
                                     _reader.ReadNextSymbol();
@@ -413,7 +415,31 @@ namespace Lexical_Analyzer_Libary.Classes
                         CurrentLexem = Lexems.Minus;
                     }
                     break;
+                case '|':
+                    if (_reader.CurrentSymbol == '|')
+                    {
+                        CurrentLexem = Lexems.Or;
+                        _reader.ReadNextSymbol();
+                    }
+                    else
+                    {
+                        AddError("Неверный символ для OR");
+                        CurrentLexem = Lexems.Error;
+                    }
+                    break;
 
+                case '&':
+                    if (_reader.CurrentSymbol == '&')
+                    {
+                        CurrentLexem = Lexems.And;
+                        _reader.ReadNextSymbol();
+                    }
+                    else
+                    {
+                        AddError("Неверный символ для AND");
+                        CurrentLexem = Lexems.Error;
+                    }
+                    break;
                 case '*':
                     if (_reader.CurrentSymbol == '=')
                     {

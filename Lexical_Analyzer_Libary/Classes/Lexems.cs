@@ -31,6 +31,8 @@ namespace Lexical_Analyzer_Libary.Classes
         Colon,          // :
         True,
         False,
+        And,    // Логический оператор AND
+        Or,     // Логический оператор OR
 
         // Арифметические операторы
         Plus,           // +
