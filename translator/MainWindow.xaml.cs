@@ -11,6 +11,7 @@ using System.Windows.Media;
 using Lexical_Analyzer_Libary.Classes;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace translator
 {
@@ -281,39 +282,10 @@ Code.exe";
             }
             return false;
         }
-        private List<TokenInfo> GetTokens(LexicalAnalyzer lexer)
-        {
-            List<TokenInfo> tokens = new List<TokenInfo>();
-
-            TokenInfo token;
-            while (true)
-            {
-                int startIndex = lexer._reader.GlobalPosition;
-
-                lexer.ParseNextLexem();
-
-                int endIndex = lexer._reader.GlobalPosition;
-
-                if (lexer.CurrentLexem == Lexems.EOF)
-                    break;
-
-                tokens.Add(new TokenInfo
-                {
-                    Lexem = lexer.CurrentLexem,
-                    Value = lexer.CurrentLexem == Lexems.Name || lexer.CurrentLexem == Lexems.Type ? lexer.CurrentName :
-                            lexer.CurrentLexem == Lexems.Number ? lexer.CurrentNumber.ToString() : null,
-                    StartIndex = startIndex,
-                    EndIndex = endIndex
-                });
-
-                if (lexer.CurrentLexem == Lexems.Error)
-                    break;
-            }
-
-            return tokens;
-        }
+       
         private TextPointer GetTextPointerAtOffset(TextPointer start, int offset)
         {
+            //dfsdf
             TextPointer navigator = start;
             int count = 0;
 
@@ -342,65 +314,129 @@ Code.exe";
         }
         private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            // Получаем весь текст из RichTextBox
-            TextRange textRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
-            string text = textRange.Text;
-
             // Сохраняем текущую позицию каретки
             TextPointer caretPosition = SourceTextBox.CaretPosition;
 
-            // Отключаем обработчики, чтобы избежать рекурсии
+            // Отключаем обработчик события, чтобы избежать рекурсии
             SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
 
-            // Очищаем форматирование
-            textRange.ClearAllProperties();
+            // Получаем весь текст из RichTextBox
+            TextRange documentRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+            string text = documentRange.Text;
 
-            // Используем лексический анализатор для разбора текста
-            LexicalAnalyzer lexer = new LexicalAnalyzer(text, true);
-            List<TokenInfo> tokens = GetTokens(lexer);
+            // Очищаем все форматирование
+            documentRange.ClearAllProperties();
 
-            // Применяем форматирование к каждому токену
-            foreach (var token in tokens)
-            {
-                TextPointer start = GetTextPointerAtOffset(SourceTextBox.Document.ContentStart, token.StartIndex);
-                TextPointer end = GetTextPointerAtOffset(SourceTextBox.Document.ContentStart, token.EndIndex);
+            // Определяем кисти с указанными цветами
+            SolidColorBrush constructsBrush = new SolidColorBrush(Color.FromRgb(180, 118, 175)); // rgb(180,118,175)
+            SolidColorBrush typeBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));         // rgb(31,91,179)
+            SolidColorBrush commentBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));      // тот же цвет, что и для типов
+            SolidColorBrush variableBrush = new SolidColorBrush(Color.FromRgb(111, 202, 245));   // rgb(111,202,245)
+            SolidColorBrush printBrush = new SolidColorBrush(Color.FromRgb(213, 202, 121));      // rgb(213,202,121)
+            SolidColorBrush numberBrush = new SolidColorBrush(Color.FromRgb(174, 187, 116));     // rgb(174,187,116)
+            SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));     // Выбран оранжевый цвет для begin и end
+            SolidColorBrush defaultBrush = Brushes.White; // Цвет по умолчанию
 
-                TextRange tokenRange = new TextRange(start, end);   
+            // Устанавливаем цвет по умолчанию для всего текста
+            documentRange.ApplyPropertyValue(TextElement.ForegroundProperty, defaultBrush);
 
-                // Применяем стиль в зависимости от типа токена
-                switch (token.Lexem)
-                {
-                    case Lexems.Type:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.CadetBlue);
-                        break;
-                    case Lexems.Keyword:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Blue);
-                        break;
-                    case Lexems.String:
-                    case Lexems.Char:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Brown);
-                        break;
-                    case Lexems.Number:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Magenta);
-                        break;
-                    case Lexems.Comment:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
-                        break;
-                    case Lexems.Error:
-                        tokenRange.ApplyPropertyValue(TextElement.BackgroundProperty, Brushes.LightCoral);
-                        break;
-                    default:
-                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
-                        break;
-                }
-            }
+            // Определяем паттерны для подсветки
+            string constructsPattern = @"\b(if|else|elseif|endif|while|endwhile|for|do|case|ENDCASE|then|true|false)\b";
+            string printPattern = @"\bprint\b";
+            string beginEndPattern = @"\b(begin|end)\b";
+            string typePattern = @"\b(int|bool|string|float|double|char|void)\b";
+            string commentPattern = @"(\$\*[\s\S]*?\*\$)|(\$\$.*?$)";
+            string numberPattern = @"\b\d+(\.\d+)?\b";
+            string variablePattern = @"\b[A-Za-z_][A-Za-z0-9_]*\b";
+
+            // Применяем подсветку для комментариев
+            ApplySyntaxHighlighting(text, commentPattern, commentBrush, RegexOptions.Multiline);
+
+            // Применяем подсветку для begin и end
+            ApplySyntaxHighlighting(text, beginEndPattern, beginEndBrush);
+
+            // Применяем подсветку для print
+            ApplySyntaxHighlighting(text, printPattern, printBrush);
+
+            // Применяем подсветку для конструкций
+            ApplySyntaxHighlighting(text, constructsPattern, constructsBrush);
+
+            // Применяем подсветку для типов данных
+            ApplySyntaxHighlighting(text, typePattern, typeBrush);
+
+            // Применяем подсветку для чисел
+            ApplySyntaxHighlighting(text, numberPattern, numberBrush);
+
+            // Применяем подсветку для переменных, исключая уже подсвеченные слова
+            ApplySyntaxHighlighting(text, variablePattern, variableBrush, excludePatterns: new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
 
             // Восстанавливаем позицию каретки
             SourceTextBox.CaretPosition = caretPosition;
 
-            // Включаем обработчики обратно
+            // Включаем обработчик обратно
             SourceTextBox.TextChanged += SourceTextBox_TextChanged;
         }
+
+        private void ApplySyntaxHighlighting(string text, string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
+        {
+            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | options);
+
+            foreach (Match match in regex.Matches(text))
+            {
+                // Проверяем, не совпадает ли текущий матч с исключёнными паттернами
+                if (excludePatterns != null)
+                {
+                    bool isExcluded = false;
+                    foreach (var excludePattern in excludePatterns)
+                    {
+                        if (Regex.IsMatch(match.Value, excludePattern, RegexOptions.IgnoreCase))
+                        {
+                            isExcluded = true;
+                            break;
+                        }
+                    }
+                    if (isExcluded)
+                        continue;
+                }
+
+                TextPointer start = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, match.Index);
+                TextPointer end = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, match.Index + match.Length);
+
+                TextRange range = new TextRange(start, end);
+                range.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
+            }
+        }
+
+        private TextPointer GetTextPositionAtOffset(TextPointer start, int offset)
+        {
+            TextPointer current = start;
+            int currentOffset = 0;
+
+            while (current != null)
+            {
+                if (current.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                {
+                    string text = current.GetTextInRun(LogicalDirection.Forward);
+                    int textLength = text.Length;
+
+                    if (currentOffset + textLength >= offset)
+                    {
+                        return current.GetPositionAtOffset(offset - currentOffset);
+                    }
+
+                    currentOffset += textLength;
+                    current = current.GetPositionAtOffset(textLength);
+                }
+                else
+                {
+                    current = current.GetNextContextPosition(LogicalDirection.Forward);
+                }
+            }
+
+            return start;
+        }
+
+
 
     }
 }

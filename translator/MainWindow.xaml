@@ -20,6 +20,16 @@
         <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
         <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
         <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}"/>
+        <SolidColorBrush x:Key="KeywordBrush" Color="#B476AF"/>
+        <!-- Конструкции (if, while, etc.) -->
+        <SolidColorBrush x:Key="TypeBrush" Color="#1F5BB3"/>
+        <!-- Типы данных (int, bool, etc.) -->
+        <SolidColorBrush x:Key="CommentBrush" Color="#1F5BB3"/>
+        <!-- Комментарии -->
+        <SolidColorBrush x:Key="VariableBrush" Color="#6FCAF5"/>
+        <!-- Переменные -->
+        <SolidColorBrush x:Key="DefaultBrush" Color="White"/>
+        <!-- Остальной текст -->
 
         <!-- Стиль для кнопок на панели инструментов -->
         <Style x:Key="ToolbarButtonStyle" TargetType="Button">
@@ -113,7 +123,7 @@
             <!-- Поле для ввода псевдокода -->
             <GroupBox Grid.Column="0" Grid.Row="0" Header="Псевдокод">
                 <Grid>
-                    <RichTextBox Name="SourceTextBox" />
+                    <RichTextBox Name="SourceTextBox" TextChanged="SourceTextBox_TextChanged" AcceptsTab="True"/>
                 </Grid>
             </GroupBox>
 
