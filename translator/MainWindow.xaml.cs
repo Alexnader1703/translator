@@ -1,6 +1,6 @@
 ﻿using Microsoft.Win32;
 using System;
-using System.Diagnostics; // Добавлено для работы с процессами
+using System.Diagnostics; // Для работы с процессами
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -10,6 +10,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Lexical_Analyzer_Libary.Classes;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace translator
 {
@@ -20,9 +21,25 @@ namespace translator
     {
         private Process process; // Поле для управления процессом DOSBox
 
+        // Ресурсные кисти
+        private Brush primaryBrush;
+        private Brush secondaryBrush;
+        private Brush accentBrush;
+        private Brush foregroundBrush;
+        private Brush errorBrush;
+
         public MainWindow()
         {
             InitializeComponent();
+
+            // Инициализация ресурсных кистей
+            primaryBrush = (Brush)FindResource("PrimaryBrush");
+            secondaryBrush = (Brush)FindResource("SecondaryBrush");
+            accentBrush = (Brush)FindResource("AccentBrush");
+            foregroundBrush = (Brush)FindResource("ForegroundBrush");
+
+            // Определение кисти для ошибок (можно добавить в ресурсы XAML)
+            errorBrush = new SolidColorBrush(Colors.Red);
         }
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
@@ -45,20 +62,14 @@ namespace translator
                     SourceTextBox.Document.Blocks.Clear();
                     SourceTextBox.Document.Blocks.Add(new Paragraph(new Run(fileContent.ToString())));
 
+                    // Очищаем MessageTextBox и добавляем сообщение об успехе
                     MessageTextBox.Document.Blocks.Clear();
-                    Paragraph successParagraph = new Paragraph(new Run("Файл успешно загружен и прочитан"))
-                    {
-                        FontFamily = new FontFamily("Segoe UI"),
-                        FontSize = 12,
-                        FontWeight = FontWeights.Bold,
-                        Foreground = Brushes.Black // Черный цвет для успешного сообщения
-                    };
-                    MessageTextBox.Document.Blocks.Add(successParagraph);
+                    AddMessage("Файл успешно загружен и прочитан", MessageType.Success);
                 }
                 catch (Exception ex)
                 {
                     MessageTextBox.Document.Blocks.Clear();
-                    MessageTextBox.Document.Blocks.Add(new Paragraph(new Run($"Ошибка при чтении файла: {ex.Message}")));
+                    AddMessage($"Ошибка при чтении файла: {ex.Message}", MessageType.Error);
                 }
                 finally
                 {
@@ -115,25 +126,11 @@ namespace translator
                     {
                         errorsOutput.AppendLine(error);
                     }
-                    Paragraph errorParagraph = new Paragraph(new Run(errorsOutput.ToString()))
-                    {
-                        FontFamily = new FontFamily("Segoe UI"),
-                        FontSize = 12,
-                        FontWeight = FontWeights.Bold,
-                        Foreground = Brushes.Red
-                    };
-                    MessageTextBox.Document.Blocks.Add(errorParagraph);
+                    AddMessage(errorsOutput.ToString(), MessageType.Error);
                 }
                 else
                 {
-                    Paragraph successParagraph = new Paragraph(new Run("Компиляция выполнена успешно"))
-                    {
-                        FontFamily = new FontFamily("Segoe UI"),
-                        FontSize = 12,
-                        FontWeight = FontWeights.Bold,
-                        Foreground = Brushes.Black
-                    };
-                    MessageTextBox.Document.Blocks.Add(successParagraph);
+                    AddMessage("Компиляция выполнена успешно", MessageType.Success);
 
                     // Создаем директорию TASM, если её нет
                     if (!Directory.Exists(tasmPath))
@@ -151,14 +148,7 @@ namespace translator
                     {
                         codeOutput.AppendLine(line);
                     }
-                    Paragraph codeParagraph = new Paragraph(new Run(codeOutput.ToString()))
-                    {
-                        FontFamily = new FontFamily("Consolas"),
-                        FontSize = 12,
-                        FontWeight = FontWeights.Normal,
-                        Foreground = Brushes.Black
-                    };
-                    ResultTextBox.Document.Blocks.Add(codeParagraph);
+                    AddCodeToResultTextBox(codeOutput.ToString());
 
                     // Создаем файл Run.bat
                     string runBatContent = @"MASM.exe Code.asm,,,;
@@ -170,22 +160,14 @@ Code.exe";
             catch (Exception ex)
             {
                 MessageTextBox.Document.Blocks.Clear();
-                Paragraph errorParagraph = new Paragraph(new Run($"Ошибка при компиляции: {ex.Message}"))
-                {
-                    FontFamily = new FontFamily("Segoe UI"),
-                    FontSize = 12,
-                    FontWeight = FontWeights.Normal,
-                    Foreground = Brushes.Red
-                };
-                MessageTextBox.Document.Blocks.Add(errorParagraph);
+                AddMessage($"Ошибка при компиляции: {ex.Message}", MessageType.Error);
             }
         }
-
 
         private void Run_Click(object sender, RoutedEventArgs e)
         {
             // Проверяем, есть ли ошибки компиляции
-            if (MessageTextBox.Document.Blocks.Any(block => ((Run)((Paragraph)block).Inlines.FirstInline).Foreground == Brushes.Red))
+            if (HasCompilationErrors())
             {
                 MessageBox.Show("Обнаружены ошибки компиляции. Исполнение программы невозможно.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
@@ -227,7 +209,6 @@ Code.exe";
             }
         }
 
-
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -235,5 +216,191 @@ Code.exe";
                 Compile_Click(sender, e); // Вызываем метод компиляции при нажатии Enter
             }
         }
+
+        // Перечисление для определения типа сообщения
+        private enum MessageType
+        {
+            Success,
+            Error,
+            Info
+        }
+
+        // Метод для добавления сообщений в MessageTextBox с соответствующим стилем
+        private void AddMessage(string message, MessageType messageType)
+        {
+            Paragraph paragraph = new Paragraph(new Run(message))
+            {
+                FontFamily = new FontFamily("Segoe UI"),
+                FontSize = 12,
+                FontWeight = FontWeights.Bold,
+                Foreground = GetBrushForMessageType(messageType)
+            };
+            MessageTextBox.Document.Blocks.Add(paragraph);
+        }
+
+        // Метод для определения кисти на основе типа сообщения
+        private Brush GetBrushForMessageType(MessageType messageType)
+        {
+            switch (messageType)
+            {
+                case MessageType.Success:
+                    return accentBrush; // Можно использовать accentBrush или любую другую кисть
+                case MessageType.Error:
+                    return errorBrush;
+                case MessageType.Info:
+                default:
+                    return foregroundBrush;
+            }
+        }
+
+        // Метод для добавления кода в ResultTextBox с соответствующим стилем
+        private void AddCodeToResultTextBox(string code)
+        {
+            Paragraph codeParagraph = new Paragraph(new Run(code))
+            {
+                FontFamily = new FontFamily("Consolas"),
+                FontSize = 12,
+                FontWeight = FontWeights.Normal,
+                Foreground = foregroundBrush // Используем foregroundBrush из ресурсов
+            };
+            ResultTextBox.Document.Blocks.Add(codeParagraph);
+        }
+
+        // Метод для проверки наличия ошибок компиляции
+        private bool HasCompilationErrors()
+        {
+            foreach (var block in MessageTextBox.Document.Blocks)
+            {
+                if (block is Paragraph paragraph)
+                {
+                    if (paragraph.Inlines.FirstInline is Run run && run.Foreground == errorBrush)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+        private List<TokenInfo> GetTokens(LexicalAnalyzer lexer)
+        {
+            List<TokenInfo> tokens = new List<TokenInfo>();
+
+            TokenInfo token;
+            while (true)
+            {
+                int startIndex = lexer._reader.GlobalPosition;
+
+                lexer.ParseNextLexem();
+
+                int endIndex = lexer._reader.GlobalPosition;
+
+                if (lexer.CurrentLexem == Lexems.EOF)
+                    break;
+
+                tokens.Add(new TokenInfo
+                {
+                    Lexem = lexer.CurrentLexem,
+                    Value = lexer.CurrentLexem == Lexems.Name || lexer.CurrentLexem == Lexems.Type ? lexer.CurrentName :
+                            lexer.CurrentLexem == Lexems.Number ? lexer.CurrentNumber.ToString() : null,
+                    StartIndex = startIndex,
+                    EndIndex = endIndex
+                });
+
+                if (lexer.CurrentLexem == Lexems.Error)
+                    break;
+            }
+
+            return tokens;
+        }
+        private TextPointer GetTextPointerAtOffset(TextPointer start, int offset)
+        {
+            TextPointer navigator = start;
+            int count = 0;
+
+            while (navigator != null)
+            {
+                if (navigator.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
+                {
+                    string textRun = navigator.GetTextInRun(LogicalDirection.Forward);
+                    int runLength = textRun.Length;
+
+                    if (count + runLength >= offset)
+                    {
+                        return navigator.GetPositionAtOffset(offset - count);
+                    }
+
+                    count += runLength;
+                    navigator = navigator.GetPositionAtOffset(runLength);
+                }
+                else
+                {
+                    navigator = navigator.GetNextContextPosition(LogicalDirection.Forward);
+                }
+            }
+
+            return start;
+        }
+        private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Получаем весь текст из RichTextBox
+            TextRange textRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+            string text = textRange.Text;
+
+            // Сохраняем текущую позицию каретки
+            TextPointer caretPosition = SourceTextBox.CaretPosition;
+
+            // Отключаем обработчики, чтобы избежать рекурсии
+            SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
+
+            // Очищаем форматирование
+            textRange.ClearAllProperties();
+
+            // Используем лексический анализатор для разбора текста
+            LexicalAnalyzer lexer = new LexicalAnalyzer(text, true);
+            List<TokenInfo> tokens = GetTokens(lexer);
+
+            // Применяем форматирование к каждому токену
+            foreach (var token in tokens)
+            {
+                TextPointer start = GetTextPointerAtOffset(SourceTextBox.Document.ContentStart, token.StartIndex);
+                TextPointer end = GetTextPointerAtOffset(SourceTextBox.Document.ContentStart, token.EndIndex);
+
+                TextRange tokenRange = new TextRange(start, end);   
+
+                // Применяем стиль в зависимости от типа токена
+                switch (token.Lexem)
+                {
+                    case Lexems.Type:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.CadetBlue);
+                        break;
+                    case Lexems.Keyword:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Blue);
+                        break;
+                    case Lexems.String:
+                    case Lexems.Char:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Brown);
+                        break;
+                    case Lexems.Number:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Magenta);
+                        break;
+                    case Lexems.Comment:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Green);
+                        break;
+                    case Lexems.Error:
+                        tokenRange.ApplyPropertyValue(TextElement.BackgroundProperty, Brushes.LightCoral);
+                        break;
+                    default:
+                        tokenRange.ApplyPropertyValue(TextElement.ForegroundProperty, Brushes.Black);
+                        break;
+                }
+            }
+
+            // Восстанавливаем позицию каретки
+            SourceTextBox.CaretPosition = caretPosition;
+
+            // Включаем обработчики обратно
+            SourceTextBox.TextChanged += SourceTextBox_TextChanged;
+        }
+
     }
 }

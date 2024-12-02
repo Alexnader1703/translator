@@ -9,7 +9,7 @@ namespace Lexical_Analyzer_Libary.Classes
         private int symbolPositionInLine;
         private int currentSymbol;
         private TextReader textReader;
-
+        public int GlobalPosition { get; private set; }
         public int LineNumber => lineNumber;
         public int SymbolPositionInLine => symbolPositionInLine;
         public int CurrentSymbol => currentSymbol;
@@ -34,6 +34,7 @@ namespace Lexical_Analyzer_Libary.Classes
             {
                 symbolPositionInLine++;
             }
+            GlobalPosition++;
         }
 
         public Reader(string filePath)
@@ -44,6 +45,7 @@ namespace Lexical_Analyzer_Libary.Classes
                 textReader = new StreamReader(filePath);
                 lineNumber = 1;
                 symbolPositionInLine = 0;
+                GlobalPosition = 0;
                 ReadNextSymbol();
             }
             else

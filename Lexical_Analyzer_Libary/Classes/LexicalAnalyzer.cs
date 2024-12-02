@@ -562,8 +562,44 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             return _errors;
         }
+        public List<TokenInfo> GetTokens()
+        {
+            List<TokenInfo> tokens = new List<TokenInfo>();
 
-       
+            while (true)
+            {
+                int startIndex = _reader.GlobalPosition;
+
+                ParseNextLexem();
+
+                int endIndex = _reader.GlobalPosition;
+
+                if (CurrentLexem == Lexems.EOF)
+                    break;
+
+                tokens.Add(new TokenInfo
+                {
+                    Lexem = CurrentLexem,
+                    Value = CurrentLexem == Lexems.Name || CurrentLexem == Lexems.Type ? CurrentName :
+                            CurrentLexem == Lexems.Number ? CurrentNumber.ToString() : null,
+                    StartIndex = startIndex,
+                    EndIndex = endIndex
+                });
+
+                if (CurrentLexem == Lexems.Error)
+                    break;
+            }
+
+            return tokens;
+        }
+
+    }
+    public class TokenInfo
+    {
+        public Lexems Lexem { get; set; }
+        public string Value { get; set; }
+        public int StartIndex { get; set; }
+        public int EndIndex { get; set; }
     }
 }
 

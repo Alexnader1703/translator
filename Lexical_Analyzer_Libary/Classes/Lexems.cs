@@ -67,6 +67,8 @@ namespace Lexical_Analyzer_Libary.Classes
         // Служебные лексемы
         EOF,            // Конец файла
         Error,          // Ошибка
-        Print           // print
+        Print,           // print
+        Comment,
+        Keyword,
     }
 }

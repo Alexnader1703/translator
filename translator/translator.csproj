@@ -100,5 +100,20 @@
       <Name>Lexical_Analyzer_Libary</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\logo\open_file.png" />
+    <Resource Include="Assets\logo\run.png" />
+    <Resource Include="Assets\logo\save_file.png" />
+    <Resource Include="Assets\test\test_arifm.txt" />
+    <Resource Include="Assets\test\test_bool.txt" />
+    <Resource Include="Assets\test\test_case.txt" />
+    <Resource Include="Assets\test\test_or_and.txt" />
+    <Resource Include="Assets\test\test_or_and_bool.txt" />
+    <Resource Include="Assets\test\test_while.txt" />
+    <Resource Include="Assets\test\test_if.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\logo\build.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
