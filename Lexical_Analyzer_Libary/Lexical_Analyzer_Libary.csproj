@@ -55,6 +55,7 @@
     <Resource Include="Assets\test_if.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\gay2ь.txt" />
     <Content Include="Assets\gay.txt" />
     <Content Include="Assets\test_bool.txt" />
     <Content Include="Assets\test_arifm.txt" />

@@ -1,0 +1,12 @@
+bool x, y;
+int c;
+begin
+    x = True;
+    y = False;
+    if (x < y && x>y) then
+        c = 1;
+    else
+        c=0;
+    endif;
+    print c;
+end
