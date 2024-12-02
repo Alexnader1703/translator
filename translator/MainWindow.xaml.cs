@@ -29,6 +29,8 @@ namespace translator
         private Brush foregroundBrush;
         private Brush errorBrush;
 
+        private bool isSyntaxHighlightingEnabled = true; // Подсветка включена по умолчанию
+
         public MainWindow()
         {
             InitializeComponent();
@@ -41,7 +43,48 @@ namespace translator
 
             // Определение кисти для ошибок (можно добавить в ресурсы XAML)
             errorBrush = new SolidColorBrush(Colors.Red);
+
+            // Добавляем обработчик для события PreviewKeyUp
+            SourceTextBox.PreviewKeyUp += SourceTextBox_PreviewKeyUp;
+            SourceTextBox.PreviewKeyDown += SourceTextBox_PreviewKeyDown;
+            SourceTextBox.PreviewTextInput += SourceTextBox_PreviewTextInput;
+
+            // Инициализируем кнопку подсветки
+            HighlightSyntaxButton.ToolTip = "Отключить подсветку";
+            HighlightSyntaxButton.Click += HighlightSyntax_Click;
         }
+        private void SourceTextBox_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Tab)
+            {
+                // Отменяем стандартное поведение Tab
+                e.Handled = true;
+
+                TextSelection selection = SourceTextBox.Selection;
+
+                if (!selection.IsEmpty)
+                {
+                    // Если есть выделенный текст, заменяем его на 3 пробела
+                    selection.Text = "    ";
+                    // Перемещаем каретку в конец вставленных пробелов
+                    SourceTextBox.CaretPosition = selection.End;
+                }
+                else
+                {
+                    // Вставляем 3 пробела в текущую позицию каретки
+                    TextPointer caret = SourceTextBox.CaretPosition;
+
+                    // Создаём TextRange для вставки текста
+                    TextRange tr = new TextRange(caret, caret);
+                    tr.Text = "    ";
+
+                    // Перемещаем каретку в конец вставленных пробелов
+                    SourceTextBox.CaretPosition = tr.End;
+                }
+            }
+        }
+
+
 
         private void OpenFile_Click(object sender, RoutedEventArgs e)
         {
@@ -66,6 +109,12 @@ namespace translator
                     // Очищаем MessageTextBox и добавляем сообщение об успехе
                     MessageTextBox.Document.Blocks.Clear();
                     AddMessage("Файл успешно загружен и прочитан", MessageType.Success);
+
+                    // Применяем подсветку после загрузки файла, если она включена
+                    if (isSyntaxHighlightingEnabled)
+                    {
+                        ApplySyntaxHighlighting();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -75,7 +124,6 @@ namespace translator
                 finally
                 {
                     _reader.Close();
-                    ApplySyntaxHighlighting();
                 }
             }
         }
@@ -283,41 +331,36 @@ Code.exe";
             }
             return false;
         }
-       
-      
-        private void SourceTextBox_TextChanged(object sender, TextChangedEventArgs e)
-        {
-          
-        }
+
         private void ApplySyntaxHighlighting()
         {
-            // Получаем текст из RichTextBox
-            TextRange textRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
-            string text = textRange.Text;
+            if (!isSyntaxHighlightingEnabled)
+                return; // Если подсветка отключена, выходим из метода
 
-            // Сохраняем текущую позицию каретки
+            // Сохраняем позицию каретки как смещение от начала документа
             int caretOffset = GetTextLength(SourceTextBox.Document.ContentStart, SourceTextBox.CaretPosition);
 
-            // Отключаем обработчик события TextChanged, если он есть
-            SourceTextBox.TextChanged -= SourceTextBox_TextChanged;
+            // Получаем весь текст с нормализованными переносами строк
+            TextRange documentRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+            string text = documentRange.Text.Replace("\r\n", "\n");
 
             // Очищаем документ и создаем новый с единообразной структурой
             SourceTextBox.Document.Blocks.Clear();
             Paragraph paragraph = new Paragraph();
             SourceTextBox.Document.Blocks.Add(paragraph);
 
-            // Определяем кисти с указанными цветами
-            SolidColorBrush constructsBrush = new SolidColorBrush(Color.FromRgb(180, 118, 175)); // rgb(180,118,175)
-            SolidColorBrush typeBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));         // rgb(31,91,179)
-            SolidColorBrush commentBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));      // тот же цвет, что и для типов
-            SolidColorBrush variableBrush = new SolidColorBrush(Color.FromRgb(111, 202, 245));   // rgb(111,202,245)
-            SolidColorBrush printBrush = new SolidColorBrush(Color.FromRgb(213, 202, 121));      // rgb(213,202,121)
-            SolidColorBrush numberBrush = new SolidColorBrush(Color.FromRgb(174, 187, 116));     // rgb(174,187,116)
-            SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));     // Цвет для begin и end
-            SolidColorBrush defaultBrush = Brushes.White; // Цвет по умолчанию
+            // Определяем кисти для подсветки
+            SolidColorBrush constructsBrush = new SolidColorBrush(Color.FromRgb(180, 118, 175));
+            SolidColorBrush typeBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));
+            SolidColorBrush commentBrush = new SolidColorBrush(Color.FromRgb(31, 91, 179));
+            SolidColorBrush variableBrush = new SolidColorBrush(Color.FromRgb(111, 202, 245));
+            SolidColorBrush printBrush = new SolidColorBrush(Color.FromRgb(230, 220, 123));
+            SolidColorBrush numberBrush = new SolidColorBrush(Color.FromRgb(174, 187, 116));
+            SolidColorBrush beginEndBrush = new SolidColorBrush(Color.FromRgb(255, 165, 0));
+            SolidColorBrush defaultBrush = Brushes.White;
 
             // Паттерны для подсветки
-            string constructsPattern = @"\b(if|else|elseif|endif|while|endwhile|for|do|case|ENDCASE|then|true|false)\b";
+            string constructsPattern = @"\b(if|else|elseif|endif|while|endwhile|for|do|case|ENDCASE|then|true|false|OF)\b";
             string printPattern = @"\bprint\b";
             string beginEndPattern = @"\b(begin|end)\b";
             string typePattern = @"\b(int|bool|string|float|double|char|void)\b";
@@ -325,103 +368,17 @@ Code.exe";
             string numberPattern = @"\b\d+(\.\d+)?\b";
             string variablePattern = @"\b[A-Za-z_][A-Za-z0-9_]*\b";
 
-            // Список для хранения разбитых элементов текста
-            List<Inline> inlines = new List<Inline>();
-
-            int lastIndex = 0;
-
-            // Список всех совпадений
-            var matches = new List<(int Index, int Length, Brush Brush)>();
-
-            void AddMatches(string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
-            {
-                Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | options);
-                foreach (Match match in regex.Matches(text))
-                {
-                    // Проверяем на исключения
-                    if (excludePatterns != null && excludePatterns.Any(ep => Regex.IsMatch(match.Value, ep, RegexOptions.IgnoreCase)))
-                        continue;
-
-                    matches.Add((match.Index, match.Length, brush));
-                }
-            }
-
-            // Собираем все совпадения
-            AddMatches(commentPattern, commentBrush, RegexOptions.Multiline);
-            AddMatches(beginEndPattern, beginEndBrush);
-            AddMatches(printPattern, printBrush);
-            AddMatches(constructsPattern, constructsBrush);
-            AddMatches(typePattern, typeBrush);
-            AddMatches(numberPattern, numberBrush);
-            AddMatches(variablePattern, variableBrush, RegexOptions.None, new[] { constructsPattern, typePattern, beginEndPattern, printPattern });
-
-            // Сортируем совпадения по индексу
-            matches = matches.OrderBy(m => m.Index).ToList();
-
-            foreach (var match in matches)
-            {
-                if (match.Index > lastIndex)
-                {
-                    // Добавляем текст до совпадения
-                    string beforeText = text.Substring(lastIndex, match.Index - lastIndex);
-                    Run beforeRun = new Run(beforeText) { Foreground = defaultBrush };
-                    inlines.Add(beforeRun);
-                }
-
-                // Добавляем совпавший текст
-                string matchText = text.Substring(match.Index, match.Length);
-                Run matchRun = new Run(matchText) { Foreground = match.Brush };
-                inlines.Add(matchRun);
-
-                lastIndex = match.Index + match.Length;
-            }
-
-            // Добавляем оставшийся текст
-            if (lastIndex < text.Length)
-            {
-                string afterText = text.Substring(lastIndex);
-                Run afterRun = new Run(afterText) { Foreground = defaultBrush };
-                inlines.Add(afterRun);
-            }
-
-            // Очищаем и заполняем параграф новыми инлайнами
-            paragraph.Inlines.Clear();
-            foreach (var inline in inlines)
-            {
-                paragraph.Inlines.Add(inline);
-            }
-
-            // Восстанавливаем позицию каретки
-            SourceTextBox.CaretPosition = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, caretOffset);
-
-            // Включаем обработчик обратно, если он нужен
-            // SourceTextBox.TextChanged += SourceTextBox_TextChanged;
-        }
-        private int GetTextLength(TextPointer start, TextPointer end)
-        {
-            return new TextRange(start, end).Text.Length;
-        }
-        private List<Inline> FormatTextRuns(string text,
-                                            string constructsPattern, Brush constructsBrush,
-                                            string typePattern, Brush typeBrush,
-                                            string commentPattern, Brush commentBrush,
-                                            string variablePattern, Brush variableBrush,
-                                            string printPattern, Brush printBrush,
-                                            string numberPattern, Brush numberBrush,
-                                            string beginEndPattern, Brush beginEndBrush,
-                                            Brush defaultBrush)
-        {
             // Создаем список инлайнов
             List<Inline> inlines = new List<Inline>();
-
+            
             // Объединяем все паттерны в один с именованными группами
-            string pattern = $@"(?<Constructs>{constructsPattern})|
-                        (?<Type>{typePattern})|
-                        (?<Comment>{commentPattern})|
-                        (?<Variable>{variablePattern})|
-                        (?<Print>{printPattern})|
-                        (?<Number>{numberPattern})|
-                        (?<BeginEnd>{beginEndPattern})";
+            string pattern = $@"(?<Comment>{commentPattern})|
+                                (?<Constructs>{constructsPattern})|
+                                (?<Type>{typePattern})|
+                                (?<BeginEnd>{beginEndPattern})|
+                                (?<Print>{printPattern})|
+                                (?<Number>{numberPattern})|
+                                (?<Variable>{variablePattern})";
 
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | RegexOptions.IgnorePatternWhitespace | RegexOptions.Multiline);
 
@@ -440,20 +397,20 @@ Code.exe";
                 // Определяем тип совпадения и устанавливаем соответствующий цвет
                 Brush brush = defaultBrush;
 
-                if (match.Groups["Constructs"].Success)
+                if (match.Groups["Comment"].Success)
+                    brush = commentBrush;
+                else if (match.Groups["Constructs"].Success)
                     brush = constructsBrush;
                 else if (match.Groups["Type"].Success)
                     brush = typeBrush;
-                else if (match.Groups["Comment"].Success)
-                    brush = commentBrush;
-                else if (match.Groups["Variable"].Success)
-                    brush = variableBrush;
+                else if (match.Groups["BeginEnd"].Success)
+                    brush = beginEndBrush;
                 else if (match.Groups["Print"].Success)
                     brush = printBrush;
                 else if (match.Groups["Number"].Success)
                     brush = numberBrush;
-                else if (match.Groups["BeginEnd"].Success)
-                    brush = beginEndBrush;
+                else if (match.Groups["Variable"].Success)
+                    brush = variableBrush;
 
                 Run matchRun = new Run(match.Value) { Foreground = brush };
                 inlines.Add(matchRun);
@@ -469,40 +426,49 @@ Code.exe";
                 inlines.Add(afterRun);
             }
 
-            return inlines;
-        }
-        private void ApplyHighlightingToPattern(string text, string pattern, Brush brush, RegexOptions options = RegexOptions.None, string[] excludePatterns = null)
-        {
-            Regex regex = new Regex(pattern, RegexOptions.IgnoreCase | options);
-
-            foreach (Match match in regex.Matches(text))
+            // Очищаем и заполняем параграф новыми инлайнами
+            paragraph.Inlines.Clear();
+            foreach (var inline in inlines)
             {
-                // Проверяем, не совпадает ли текущий матч с исключёнными паттернами
-                if (excludePatterns != null)
-                {
-                    bool isExcluded = false;
-                    foreach (var excludePattern in excludePatterns)
-                    {
-                        if (Regex.IsMatch(match.Value, excludePattern, RegexOptions.IgnoreCase))
-                        {
-                            isExcluded = true;
-                            break;
-                        }
-                    }
-                    if (isExcluded)
-                        continue;
-                }
-
-                TextPointer start = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, match.Index);
-                TextPointer end = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, match.Index + match.Length);
-
-                TextRange range = new TextRange(start, end);
-                range.ApplyPropertyValue(TextElement.ForegroundProperty, brush);
+                paragraph.Inlines.Add(inline);
             }
+
+            // Восстанавливаем позицию каретки
+            TextPointer caretPosition = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, caretOffset);
+            SourceTextBox.CaretPosition = caretPosition;
+
+            // Фокусируемся на текстовом поле
+            SourceTextBox.Focus();
         }
-        private void HighlightSyntax_Click(object sender, RoutedEventArgs e)
+
+        private void RemoveSyntaxHighlighting()
         {
-            ApplySyntaxHighlighting();
+            // Сохраняем позицию каретки
+            int caretOffset = GetTextLength(SourceTextBox.Document.ContentStart, SourceTextBox.CaretPosition);
+
+            // Получаем весь текст без изменений
+            TextRange documentRange = new TextRange(SourceTextBox.Document.ContentStart, SourceTextBox.Document.ContentEnd);
+            string text = documentRange.Text.Replace("\r\n", "\n");
+
+            // Очищаем документ и создаем новый параграф с текстом
+            SourceTextBox.Document.Blocks.Clear();
+            Paragraph paragraph = new Paragraph();
+            SourceTextBox.Document.Blocks.Add(paragraph);
+
+            Run run = new Run(text) { Foreground = Brushes.White };
+            paragraph.Inlines.Add(run);
+
+            // Восстанавливаем позицию каретки
+            TextPointer caretPosition = GetTextPositionAtOffset(SourceTextBox.Document.ContentStart, caretOffset);
+            SourceTextBox.CaretPosition = caretPosition;
+
+            // Фокусируемся на текстовом поле
+            SourceTextBox.Focus();
+        }
+
+        private int GetTextLength(TextPointer start, TextPointer end)
+        {
+            return new TextRange(start, end).Text.Replace("\r\n", "\n").Length;
         }
 
         private TextPointer GetTextPositionAtOffset(TextPointer start, int offset)
@@ -514,25 +480,67 @@ Code.exe";
             {
                 if (current.GetPointerContext(LogicalDirection.Forward) == TextPointerContext.Text)
                 {
-                    string text = current.GetTextInRun(LogicalDirection.Forward);
-                    if (count + text.Length >= offset)
+                    string textRun = current.GetTextInRun(LogicalDirection.Forward).Replace("\r\n", "\n");
+                    int runLength = textRun.Length;
+
+                    if (count + runLength >= offset)
                     {
                         return current.GetPositionAtOffset(offset - count, LogicalDirection.Forward);
                     }
-                    count += text.Length;
-                    current = current.GetPositionAtOffset(text.Length, LogicalDirection.Forward);
+
+                    count += runLength;
+                    current = current.GetPositionAtOffset(runLength, LogicalDirection.Forward);
                 }
                 else
                 {
                     current = current.GetNextContextPosition(LogicalDirection.Forward);
                 }
             }
+
             return start;
         }
+        private void CloseApp_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
 
+        private void HighlightSyntax_Click(object sender, RoutedEventArgs e)
+        {
+            isSyntaxHighlightingEnabled = !isSyntaxHighlightingEnabled; // Переключаем состояние
 
+            // Обновляем текст кнопки
+            if (isSyntaxHighlightingEnabled)
+            {
+                HighlightSyntaxButton.ToolTip = "Отключить подсветку";
+                ApplySyntaxHighlighting(); // Применяем подсветку при включении
+            }
+            else
+            {
+                HighlightSyntaxButton.ToolTip = "Включить подсветку";
+                RemoveSyntaxHighlighting(); // Убираем подсветку при отключении
+            }
+        }
+        private void SourceTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
+        {
+            if (isSyntaxHighlightingEnabled)
+            {
+                // Символы, после которых нужно вызвать подсветку
+                char[] triggerChars = { ';', ':', ',', '.', '(', ')', '{', '}', '[', ']', '=', '<', '>', '+', '-', '*', '/' };
 
+                if (triggerChars.Contains(e.Text.Last()))
+                {
+                    ApplySyntaxHighlighting();
+                }
+            }
+        }
 
+        private void SourceTextBox_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (isSyntaxHighlightingEnabled && (e.Key == Key.Space || e.Key == Key.Enter))
+            {
+                ApplySyntaxHighlighting();
+            }
+        }
 
     }
 }

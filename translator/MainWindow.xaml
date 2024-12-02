@@ -1,10 +1,12 @@
 ﻿<Window x:Class="translator.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:local="clr-namespace:translator"
         Title="Translator" Height="600" Width="900"
         KeyDown="Window_KeyDown"
-        Background="#FF252526">
+        Background="#FF252526"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        ResizeMode="CanResizeWithGrip">
     <!-- Ресурсы для стилей и цветов -->
     <Window.Resources>
         <!-- Цветовая палитра -->
@@ -21,15 +23,44 @@
         <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}"/>
         <SolidColorBrush x:Key="ForegroundBrush" Color="{StaticResource ForegroundColor}"/>
         <SolidColorBrush x:Key="KeywordBrush" Color="#B476AF"/>
-        <!-- Конструкции (if, while, etc.) -->
         <SolidColorBrush x:Key="TypeBrush" Color="#1F5BB3"/>
-        <!-- Типы данных (int, bool, etc.) -->
         <SolidColorBrush x:Key="CommentBrush" Color="#1F5BB3"/>
-        <!-- Комментарии -->
         <SolidColorBrush x:Key="VariableBrush" Color="#6FCAF5"/>
-        <!-- Переменные -->
         <SolidColorBrush x:Key="DefaultBrush" Color="White"/>
-        <!-- Остальной текст -->
+
+        <!-- Стиль для кнопок управления окном -->
+        <Style x:Key="WindowButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="5"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Width" Value="30"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Цветовая палитра -->
+
 
         <!-- Стиль для кнопок на панели инструментов -->
         <Style x:Key="ToolbarButtonStyle" TargetType="Button">
@@ -89,46 +120,70 @@
 
         <!-- Пользовательский стиль для ToolBar, чтобы убрать гриппер и кнопку переполнения -->
         <Style x:Key="CustomToolBarStyle" TargetType="ToolBar">
+            <!-- Устанавливаем ItemsPanelTemplate на DockPanel -->
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <DockPanel />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+            <!-- Обновляем шаблон ControlTemplate -->
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToolBar">
                         <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden">
-                                <WrapPanel IsItemsHost="True" Orientation="Horizontal"/>
-                            </ScrollViewer>
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}">
+                            <!-- Используем ItemsPresenter для отображения элементов -->
+                            <ItemsPresenter />
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
     </Window.Resources>
 
     <DockPanel>
-        <!-- Панель инструментов -->
-        <ToolBar DockPanel.Dock="Top" Background="{StaticResource PrimaryBrush}" Style="{StaticResource CustomToolBarStyle}">
-            <!-- Кнопка "Открыть" -->
-            <Button Style="{StaticResource ToolbarButtonStyle}" Click="OpenFile_Click" ToolTip="Открыть файл">
-                <Image Source="pack://application:,,,/Assets/logo/open_file.png" Width="24" Height="24"/>
+        <Grid DockPanel.Dock="Top" Background="{StaticResource PrimaryBrush}">
+            <Grid.ColumnDefinitions>
+                <!-- Левая колонка занимает всё доступное пространство -->
+                <ColumnDefinition Width="*"/>
+                <!-- Правая колонка для кнопки "Закрыть" с автоматической шириной -->
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Левая часть с кнопками -->
+            <StackPanel Orientation="Horizontal" Grid.Column="0">
+                <!-- Кнопка "Открыть" -->
+                <Button Style="{StaticResource ToolbarButtonStyle}" Click="OpenFile_Click" ToolTip="Открыть файл">
+                    <Image Source="pack://application:,,,/Assets/logo/open_file.png" Width="24" Height="24"/>
+                </Button>
+                <!-- Кнопка "Сохранить" -->
+                <Button Style="{StaticResource ToolbarButtonStyle}" Click="SaveFile_Click" ToolTip="Сохранить файл">
+                    <Image Source="pack://application:,,,/Assets/logo/save_file.png" Width="24" Height="26"/>
+                </Button>
+                <!-- Кнопка "Скомпилировать" -->
+                <Button Style="{StaticResource ToolbarButtonStyle}" Click="Compile_Click" ToolTip="Скомпилировать">
+                    <Image Source="pack://application:,,,/Assets/logo/build.png" Width="30" Height="30"/>
+                </Button>
+                <!-- Кнопка "Запуск программы" -->
+                <Button Style="{StaticResource ToolbarButtonStyle}" Click="Run_Click" ToolTip="Запустить программу">
+                    <Image Source="pack://application:,,,/Assets/logo/run.png" Width="30" Height="30"/>
+                </Button>
+                <!-- Кнопка "Подсветить синтаксис" -->
+                <Button Style="{StaticResource ToolbarButtonStyle}" x:Name="HighlightSyntaxButton" ToolTip="Подсветить синтаксис">
+                    <Image Source="pack://application:,,,/Assets/logo/highlight.png" Width="24" Height="24"/>
+                </Button>
+            </StackPanel>
+
+            <!-- Правая часть с кнопкой "Закрыть" -->
+            <Button Style="{StaticResource ToolbarButtonStyle}" Click="CloseApp_Click" ToolTip="Закрыть приложение" Grid.Column="1">
+                <Image Source="pack://application:,,,/Assets/logo/close.png" Width="24" Height="24"/>
             </Button>
-            <!-- Кнопка "Сохранить" -->
-            <Button Style="{StaticResource ToolbarButtonStyle}" Click="SaveFile_Click" ToolTip="Сохранить файл">
-                <Image Source="pack://application:,,,/Assets/logo/save_file.png" Width="24" Height="26"/>
-            </Button>
-            <!-- Кнопка "Скомпилировать" -->
-            <Button Style="{StaticResource ToolbarButtonStyle}" Click="Compile_Click" ToolTip="Скомпилировать">
-                <Image Source="pack://application:,,,/Assets/logo/build.png" Width="30" Height="30"/>
-            </Button>
-            <!-- Кнопка "Запуск программы" -->
-            <Button Style="{StaticResource ToolbarButtonStyle}" Click="Run_Click" ToolTip="Запустить программу">
-                <Image Source="pack://application:,,,/Assets/logo/run.png" Width="30" Height="30"/>
-            </Button>
-            <!-- Кнопка "Подсветить синтаксис" -->
-            <Button Style="{StaticResource ToolbarButtonStyle}" Click="HighlightSyntax_Click" ToolTip="Подсветить синтаксис">
-                <Image Source="pack://application:,,,/Assets/logo/highlight.png" Width="24" Height="24"/>
-            </Button>
-        </ToolBar>
+        </Grid>
+
 
         <!-- Основной контент -->
         <Grid Background="{StaticResource BackgroundBrush}">
