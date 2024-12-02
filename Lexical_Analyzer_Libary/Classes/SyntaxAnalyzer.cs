@@ -21,9 +21,8 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         private tType ParseComparison()
         {
-            tType type = ParseAdditionOrSubtraction(); // Начинаем с обработки арифметических операций
+            tType type = ParseAdditionOrSubtraction();
 
-            // Проверка на операторы сравнения
             if (_lexicalAnalyzer.CurrentLexem == Lexems.Greater ||
                 _lexicalAnalyzer.CurrentLexem == Lexems.Less ||
                 _lexicalAnalyzer.CurrentLexem == Lexems.GreaterOrEqual ||
@@ -32,6 +31,9 @@ namespace Lexical_Analyzer_Libary.Classes
                 _lexicalAnalyzer.CurrentLexem == Lexems.NotEqual)
             {
                 string jumpInstruction = "";
+                string falseLabel = CodeGenerator.GenerateLabel();
+                string endLabel = CodeGenerator.GenerateLabel();
+
                 switch (_lexicalAnalyzer.CurrentLexem)
                 {
                     case Lexems.Equal:
@@ -64,16 +66,24 @@ namespace Lexical_Analyzer_Libary.Classes
                 CodeGenerator.AddInstruction("pop ax"); // Правый операнд
                 CodeGenerator.AddInstruction("pop bx"); // Левый операнд
                 CodeGenerator.AddInstruction("cmp bx, ax");
-                CodeGenerator.AddInstruction($"{jumpInstruction} {currentLabel}");
+                CodeGenerator.AddInstruction($"{jumpInstruction} {falseLabel}");
 
-                currentLabel = "";
+                // Если условие истинно
+                CodeGenerator.AddInstruction("mov ax, 1");
+                CodeGenerator.AddInstruction("jmp " + endLabel);
+
+                // Если условие ложно
+                CodeGenerator.AddLabel(falseLabel);
+                CodeGenerator.AddInstruction("mov ax, 0");
+
+                CodeGenerator.AddLabel(endLabel);
+                CodeGenerator.AddInstruction("push ax");
 
                 type = tType.Bool;
             }
 
             return type;
         }
-
         private void ParseStatementSequence()
         {
             bool foundEnd = false;
@@ -265,7 +275,7 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         private tType ParseExpression()
         {
-            return ParseComparison();
+             return ParseLogicalOr();
         }
 
         /// <summary>
@@ -576,6 +586,15 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         private void CheckTypeCompatibility(tType leftType, tType rightType, string operation)
         {
+            if (operation == "логического И" || operation == "логического ИЛИ")
+            {
+                if (leftType != tType.Bool || rightType != tType.Bool)
+                {
+                    Error($"Операции {operation} применимы только к типу 'bool'");
+                }
+                return;
+            }
+
             if (leftType != rightType)
             {
                 Error($"Несовместимые типы в операции {operation}: {leftType} и {rightType}");
@@ -738,8 +757,60 @@ namespace Lexical_Analyzer_Libary.Classes
 
             return instructions;
         }
+        private tType ParseLogicalOr()
+        {
+            tType type = ParseLogicalAnd();
 
-      
+            while (_lexicalAnalyzer.CurrentLexem == Lexems.Or)
+            {
+                string exitLabel = CodeGenerator.GenerateLabel();
+
+                _lexicalAnalyzer.ParseNextLexem();
+                tType rightType = ParseLogicalAnd();
+                CheckTypeCompatibility(type, rightType, "логического ИЛИ");
+
+                // Генерация кода для операции OR
+                CodeGenerator.AddInstruction("pop ax"); // Правый операнд
+                CodeGenerator.AddInstruction("pop bx"); // Левый операнд
+                CodeGenerator.AddInstruction("or ax, bx");
+                CodeGenerator.AddInstruction("push ax");
+                CodeGenerator.AddInstruction("cmp ax, 0");
+                CodeGenerator.AddInstruction($"jnz {exitLabel}"); // Если результат не ноль, пропускаем jump
+                CodeGenerator.AddInstruction($"jmp {currentLabel}"); // Если результат ноль, переходим на метку условия
+                CodeGenerator.AddLabel(exitLabel);
+
+                type = tType.Bool;
+            }
+            return type;
+        }
+
+        private tType ParseLogicalAnd()
+        {
+            tType type = ParseComparison();
+
+            while (_lexicalAnalyzer.CurrentLexem == Lexems.And)
+            {
+                _lexicalAnalyzer.ParseNextLexem();
+
+                // Сохраняем текущую метку, так как ParseComparison может её изменить
+                string savedLabel = currentLabel;
+
+                tType rightType = ParseComparison();
+                CheckTypeCompatibility(type, rightType, "логического И");
+
+                // Генерация кода для операции AND
+                CodeGenerator.AddInstruction("pop ax"); // Правый операнд
+                CodeGenerator.AddInstruction("pop bx"); // Левый операнд
+                CodeGenerator.AddInstruction("and ax, bx");
+                CodeGenerator.AddInstruction("push ax");
+                CodeGenerator.AddInstruction("cmp ax, 0");
+                CodeGenerator.AddInstruction($"jz {savedLabel}"); // Если результат ноль, переходим на метку условия
+
+                type = tType.Bool;
+            }
+            return type;
+        }
+
 
 
     }
