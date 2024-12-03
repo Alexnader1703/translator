@@ -403,43 +403,56 @@ namespace Lexical_Analyzer_Libary.Classes
             CheckLexem(Lexems.If);
 
             // Генерация меток
-            string lowerLabel = CodeGenerator.GenerateLabel();
-            currentLabel = lowerLabel;
-
-            string exitLabel = CodeGenerator.GenerateLabel();
+            string falseLabel = CodeGenerator.GenerateLabel();  // метка для false-ветки
+            string endLabel = CodeGenerator.GenerateLabel();    // метка конца if
 
             CheckLexem(Lexems.LeftPar);
-            ParseExpression();
+            ParseExpression();  // результат условия будет на вершине стека
             CheckLexem(Lexems.RightPar);
+
+            // После вычисления условия, проверяем его и делаем переход если false
+            CodeGenerator.AddInstruction("pop ax");
+            CodeGenerator.AddInstruction("cmp ax, 0");
+            CodeGenerator.AddInstruction($"je {falseLabel}");
 
             CheckLexem(Lexems.Then);
 
+            // Код для then-ветки
             ParseStatementSequence();
 
-            CodeGenerator.AddInstruction($"jmp {exitLabel}");
+            // После then-ветки переходим в конец if
+            CodeGenerator.AddInstruction($"jmp {endLabel}");
 
-            CodeGenerator.AddLabel(lowerLabel);
+            // Метка для false-ветки
+            CodeGenerator.AddLabel(falseLabel);
 
+            // Обработка elseif веток
             while (_lexicalAnalyzer.CurrentLexem == Lexems.ElseIf)
             {
                 _lexicalAnalyzer.ParseNextLexem();
-
-                lowerLabel = CodeGenerator.GenerateLabel();
-                currentLabel = lowerLabel;
+                string nextFalseLabel = CodeGenerator.GenerateLabel();
 
                 CheckLexem(Lexems.LeftPar);
                 ParseExpression();
                 CheckLexem(Lexems.RightPar);
 
-                CheckLexem(Lexems.Then);
+                // Проверяем условие elseif
+                CodeGenerator.AddInstruction("pop ax");
+                CodeGenerator.AddInstruction("cmp ax, 0");
+                CodeGenerator.AddInstruction($"je {nextFalseLabel}");
 
+                CheckLexem(Lexems.Then);
                 ParseStatementSequence();
 
-                CodeGenerator.AddInstruction($"jmp {exitLabel}");
+                // После успешной ветки переходим в конец
+                CodeGenerator.AddInstruction($"jmp {endLabel}");
 
-                CodeGenerator.AddLabel(lowerLabel);
+                // Метка для следующей ветки
+                CodeGenerator.AddLabel(nextFalseLabel);
+                falseLabel = nextFalseLabel;
             }
 
+            // Обработка else
             if (_lexicalAnalyzer.CurrentLexem == Lexems.Else)
             {
                 _lexicalAnalyzer.ParseNextLexem();
@@ -448,9 +461,9 @@ namespace Lexical_Analyzer_Libary.Classes
 
             CheckLexem(Lexems.EndIf);
 
-            CodeGenerator.AddLabel(exitLabel);
+            // Метка конца всего if
+            CodeGenerator.AddLabel(endLabel);
         }
-
         /// <summary>
         /// Разбирает оператор while, включая проверку условия и тела цикла.
         /// </summary>
@@ -458,22 +471,29 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             CheckLexem(Lexems.While);
 
-            string upperLabel = CodeGenerator.GenerateLabel();
-            string lowerLabel = CodeGenerator.GenerateLabel();
-            currentLabel = lowerLabel;
+            string startLabel = CodeGenerator.GenerateLabel();  // Метка начала цикла
+            string endLabel = CodeGenerator.GenerateLabel();    // Метка конца цикла
 
-            CodeGenerator.AddLabel(upperLabel);
+            // Метка начала цикла
+            CodeGenerator.AddLabel(startLabel);
 
             CheckLexem(Lexems.LeftPar);
-            ParseExpression();
+            ParseExpression();  // Разбор условия
             CheckLexem(Lexems.RightPar);
 
-            // Генерация кода для условия цикла будет в ParseComparison() через currentLabel
+            // Проверка условия и выход из цикла если оно ложно
+            CodeGenerator.AddInstruction("pop ax");
+            CodeGenerator.AddInstruction("cmp ax, 0");
+            CodeGenerator.AddInstruction($"je {endLabel}");
 
+            // Разбор тела цикла
             ParseStatementSequence();
 
-            CodeGenerator.AddInstruction($"jmp {upperLabel}");
-            CodeGenerator.AddLabel(lowerLabel);
+            // Переход обратно к началу цикла
+            CodeGenerator.AddInstruction($"jmp {startLabel}");
+
+            // Метка конца цикла
+            CodeGenerator.AddLabel(endLabel);
 
             CheckLexem(Lexems.EndWhile);
         }
