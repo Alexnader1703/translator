@@ -1,0 +1,10 @@
+int a,b,c;
+begin
+a=77;
+c=2;
+if(a > 20) then
+print a;
+else
+print c;
+endif;
+end

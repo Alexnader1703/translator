@@ -1,0 +1,16 @@
+int a,b,c, temp, othertemp, newtemp;
+begin
+a=7;
+c = 6;
+temp = 1;
+while (a  < c + 4)
+    a=a+1;
+    if(a > 9) then
+       temp = 0;
+    EndIF;
+EndWhile;
+ 
+
+print a;
+print temp;
+end

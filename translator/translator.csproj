@@ -121,5 +121,22 @@
   <ItemGroup>
     <Resource Include="Assets\logo\close.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\test\test01.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\test\test02.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\test\test03.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\test\Тест05 ошибка.txt" />
+    <Resource Include="Assets\test\Тест06 ошибка.txt" />
+    <Resource Include="Assets\test\Тест07 ошибка.txt" />
+    <Resource Include="Assets\test\Тест08 ошибка.txt" />
+    <Resource Include="Assets\test\Тест09 ошибка.txt" />
+    <Resource Include="Assets\test\Тест10 ошибка.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,0 +1,3 @@
+int a,n,res;
+begin1
+a=2;
