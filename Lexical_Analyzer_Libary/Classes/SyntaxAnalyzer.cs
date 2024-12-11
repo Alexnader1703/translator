@@ -189,6 +189,9 @@ namespace Lexical_Analyzer_Libary.Classes
         {
             switch (_lexicalAnalyzer.CurrentLexem)
             {
+                case Lexems.Var: // Новый кейс для 'var'
+                    ParseVariableDeclaration();
+                    break;
                 case Lexems.Name:
                     ParseAssignmentStatement();
                     break;
@@ -275,7 +278,7 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         private tType ParseExpression()
         {
-             return ParseLogicalOr();
+            return ParseLogicalOr();
         }
 
         /// <summary>
@@ -464,6 +467,7 @@ namespace Lexical_Analyzer_Libary.Classes
             // Метка конца всего if
             CodeGenerator.AddLabel(endLabel);
         }
+
         /// <summary>
         /// Разбирает оператор while, включая проверку условия и тела цикла.
         /// </summary>
@@ -503,6 +507,12 @@ namespace Lexical_Analyzer_Libary.Classes
         /// </summary>
         private void ParseVariableDeclaration()
         {
+            // Проверяем наличие 'var'
+            CheckLexem(Lexems.Var); // Ожидается Lexems.Var, уже обрабатывается в ParseStatement
+
+            // Проверяем наличие двоеточия после 'var'
+            CheckLexem(Lexems.Colon, "Ожидался символ ':' после 'var'");
+
             if (_lexicalAnalyzer.CurrentLexem != Lexems.Type)
             {
                 Error("Ожидался тип данных");
@@ -564,7 +574,7 @@ namespace Lexical_Analyzer_Libary.Classes
                     return tType.Int;
                 case "string":
                     return tType.String;
-                case "bool":
+                case "boolean":
                     return tType.Bool;
                 case "float":
                     return tType.Float;
@@ -580,11 +590,18 @@ namespace Lexical_Analyzer_Libary.Classes
         /// <summary>
         /// Проверяет, соответствует ли текущая лексема ожидаемой.
         /// </summary>
-        private void CheckLexem(Lexems expectedLexem)
+        private void CheckLexem(Lexems expectedLexem, string errorMessage = null)
         {
             if (_lexicalAnalyzer.CurrentLexem != expectedLexem)
             {
-                Error($"Ожидается {expectedLexem}, но найдено {_lexicalAnalyzer.CurrentLexem}");
+                if (errorMessage == null)
+                {
+                    Error($"Ожидается {expectedLexem}, но найдено {_lexicalAnalyzer.CurrentLexem}");
+                }
+                else
+                {
+                    Error(errorMessage);
+                }
             }
             else
             {
@@ -629,15 +646,19 @@ namespace Lexical_Analyzer_Libary.Classes
             // Объявление сегмента данных
             CodeGenerator.DeclareDataSegment();
             _lexicalAnalyzer.ParseNextLexem();
-            // Разрешаем несколько объявлений переменных перед Begin
-            while (_lexicalAnalyzer.CurrentLexem == Lexems.Type)
+
+            // Разрешаем несколько объявлений переменных с 'var:'
+            while (_lexicalAnalyzer.CurrentLexem == Lexems.Var)
             {
                 ParseVariableDeclaration();
             }
+
             // Объявление переменных
             CodeGenerator.DeclareVariables(_lexicalAnalyzer.GetNameTable());
+
             // Объявление сегментов стека и кода
             CodeGenerator.DeclareStackAndCodeSegments();
+
             if (_lexicalAnalyzer.CurrentLexem == Lexems.Begin)
             {
                 _lexicalAnalyzer.ParseNextLexem();
@@ -648,10 +669,12 @@ namespace Lexical_Analyzer_Libary.Classes
             {
                 Error("Ожидалось начало блока кода (Begin)");
             }
+
             // Остальной код остается без изменений
             CodeGenerator.DeclareEndOfMainProcedure();
             CodeGenerator.DeclarePrintProcedure();
             CodeGenerator.DeclareEndOfCode();
+
             if (_errors.Count > 0)
             {
                 Console.WriteLine("Обнаружены ошибки:");
@@ -665,6 +688,8 @@ namespace Lexical_Analyzer_Libary.Classes
                 Console.WriteLine("Синтаксический анализ завершен успешно");
             }
         }
+
+
         /// <summary>
         /// Разбирает конструкцию CASE и генерирует соответствующий код.
         /// </summary>

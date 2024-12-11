@@ -32,7 +32,7 @@ namespace Lexical_Analyzer_Libary.Classes
         True,
         False,
         And,    // Логический оператор AND
-        Or,     // Логический оператор OR
+        Or, Var,    // Логический оператор OR
 
         // Арифметические операторы
         Plus,           // +

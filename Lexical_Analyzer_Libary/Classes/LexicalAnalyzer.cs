@@ -28,7 +28,7 @@ namespace Lexical_Analyzer_Libary.Classes
             _errors = new List<string>();
             _types = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "int", "string", "bool", "float", "double", "char", "void"
+        "int", "string", "boolean", "float", "double", "char", "void"
     };
 
             InitializeKeywords();
@@ -69,7 +69,7 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("false", Lexems.False);
             AddKeyword("and", Lexems.And);
             AddKeyword("or", Lexems.Or);
-
+            AddKeyword("var", Lexems.Var);
         }
 
         private void AddKeyword(string keyword, Lexems lexem)
@@ -248,7 +248,7 @@ namespace Lexical_Analyzer_Libary.Classes
 
             CurrentLexem = GetKeywordLexem(CurrentName);
 
-          
+
         }
 
         private void ParseNumber()

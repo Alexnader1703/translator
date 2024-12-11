@@ -363,7 +363,7 @@ Code.exe";
             string constructsPattern = @"\b(if|else|elseif|endif|while|endwhile|for|do|case|ENDCASE|then|true|false|OF)\b";
             string printPattern = @"\bprint\b";
             string beginEndPattern = @"\b(begin|end)\b";
-            string typePattern = @"\b(int|bool|string|float|double|char|void)\b";
+            string typePattern = @"\b(int|bool|string|float|double|char|void|var)\b";
             string commentPattern = @"(\$\*[\s\S]*?\*\$)|(\$\$.*?$)";
             string numberPattern = @"\b\d+(\.\d+)?\b";
             string variablePattern = @"\b[A-Za-z_][A-Za-z0-9_]*\b";
