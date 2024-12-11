@@ -106,7 +106,8 @@ namespace Lexical_Analyzer_Libary.Classes
                     _lexicalAnalyzer.CurrentLexem == Lexems.EndIf ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.Else ||
                     _lexicalAnalyzer.CurrentLexem == Lexems.EndWhile ||
-                    _lexicalAnalyzer.CurrentLexem == Lexems.ElseIf)
+                    _lexicalAnalyzer.CurrentLexem == Lexems.ElseIf ||
+                    _lexicalAnalyzer.CurrentLexem == Lexems.EndUntil)
                 {
                     foundEnd = true;
                     break;
@@ -133,7 +134,8 @@ namespace Lexical_Analyzer_Libary.Classes
                          _lexicalAnalyzer.CurrentLexem != Lexems.EOF &&
                          _lexicalAnalyzer.CurrentLexem != Lexems.EndIf &&
                          _lexicalAnalyzer.CurrentLexem != Lexems.Else &&
-                         _lexicalAnalyzer.CurrentLexem != Lexems.EndWhile)
+                         _lexicalAnalyzer.CurrentLexem != Lexems.EndWhile &&
+                         _lexicalAnalyzer.CurrentLexem != Lexems.EndUntil)
                 {
                     Error("Ожидается точка с запятой");
                     SkipToNextStatement();
@@ -200,6 +202,9 @@ namespace Lexical_Analyzer_Libary.Classes
                     break;
                 case Lexems.While:
                     ParseWhileLoop();
+                    break;
+                case Lexems.Until:
+                    ParseUntilLoop();
                     break;
                 case Lexems.Case:
                     ParseCaseStatement();
@@ -467,6 +472,37 @@ namespace Lexical_Analyzer_Libary.Classes
             // Метка конца всего if
             CodeGenerator.AddLabel(endLabel);
         }
+        private void ParseUntilLoop()
+        {
+            CheckLexem(Lexems.Until);
+
+            string startLabel = CodeGenerator.GenerateLabel();  // Метка начала цикла
+            string endLabel = CodeGenerator.GenerateLabel();    // Метка конца цикла
+
+            // Метка начала цикла
+            CodeGenerator.AddLabel(startLabel);
+
+            CheckLexem(Lexems.LeftPar);
+            ParseExpression();  // Разбор условия
+            CheckLexem(Lexems.RightPar);
+
+            // Проверка условия и выход из цикла если оно ложно
+            CodeGenerator.AddInstruction("pop ax");
+            CodeGenerator.AddInstruction("cmp ax, 1");
+            CodeGenerator.AddInstruction($"je {endLabel}");
+
+            // Разбор тела цикла
+            ParseStatementSequence();
+
+            // Переход обратно к началу цикла
+            CodeGenerator.AddInstruction($"jmp {startLabel}");
+
+            // Метка конца цикла
+            CodeGenerator.AddLabel(endLabel);
+
+            CheckLexem(Lexems.EndUntil);
+        }
+
 
         /// <summary>
         /// Разбирает оператор while, включая проверку условия и тела цикла.

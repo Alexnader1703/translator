@@ -57,6 +57,7 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("else", Lexems.Else);
             AddKeyword("endif", Lexems.EndIf);
             AddKeyword("while", Lexems.While);
+            AddKeyword("until", Lexems.Until);
             AddKeyword("endwhile", Lexems.EndWhile);
             AddKeyword("elseif", Lexems.ElseIf);
             AddKeyword("do", Lexems.Do);
@@ -70,6 +71,7 @@ namespace Lexical_Analyzer_Libary.Classes
             AddKeyword("and", Lexems.And);
             AddKeyword("or", Lexems.Or);
             AddKeyword("var", Lexems.Var);
+            AddKeyword("enduntil", Lexems.EndUntil);
         }
 
         private void AddKeyword(string keyword, Lexems lexem)

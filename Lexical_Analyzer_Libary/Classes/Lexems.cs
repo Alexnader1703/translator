@@ -30,7 +30,7 @@ namespace Lexical_Analyzer_Libary.Classes
         EndCase,        // endcase
         Colon,          // :
         True,
-        False,
+        False, Until, EndUntil,
         And,    // Логический оператор AND
         Or, Var,    // Логический оператор OR
 

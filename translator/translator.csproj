@@ -138,5 +138,8 @@
     <Resource Include="Assets\test\Тест09 ошибка.txt" />
     <Resource Include="Assets\test\Тест10 ошибка.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\test\test_while - Копировать.txt" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
